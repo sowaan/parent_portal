@@ -1,0 +1,105 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-11-29 09:17:58.711786",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_hfja",
+  "fake_attachment",
+  "family_code",
+  "column_break_hkea",
+  "posting_date",
+  "section_break_ruei",
+  "student_fee_details",
+  "fee_collection_payment",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_hfja",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "student_fee_details",
+   "fieldtype": "Table",
+   "label": "Student Fee Details",
+   "options": "Student Fee Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "fake_attachment",
+   "fieldtype": "Check",
+   "label": "Wrong Attachment"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "family_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Family Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_hkea",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ruei",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Portal Payment Record",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "fee_collection_payment",
+   "fieldtype": "Table",
+   "label": "Fee Collection Payment",
+   "options": "Fee Collection Payment"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "Fee Collections",
+   "link_fieldname": "reference"
+  }
+ ],
+ "modified": "2024-12-02 14:58:04.252940",
+ "modified_by": "Administrator",
+ "module": "Parent Portal",
+ "name": "Portal Payment Record",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
