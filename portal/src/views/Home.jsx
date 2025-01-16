@@ -2,8 +2,6 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import DataTable from "react-data-table-component";
-import AppSidebar from "../components/AppSidebar";
-import AppHeader from "../components/AppHeader";
 import "./Home.css";
 import {
   CButton,
@@ -14,8 +12,9 @@ import {
   CModalFooter,
   CModalHeader,
 } from "@coreui/react";
+import moment from "moment";
 
-const Home = ({ sidebarShow, setSidebarShow }) => {
+const Home = () => {
   const navigate = useNavigate();
   const [selectedRows, setSelectedRows] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -41,31 +40,21 @@ const Home = ({ sidebarShow, setSidebarShow }) => {
   const columns = useMemo(
     () => [
       {
-        name: "Id",
-        cell: (row) => (
+        name: "Student Name",
+        selector: (row) => (
           <div
             onClick={() => {
               navigate(`/student-fee/${row.name}`);
             }}
-            className="sc-fAUdSK sc-dntaoT sc-ivxoEo dLHSn dQcPXM bOmZtP rdt_TableCell"
           >
-            <div>{row.name}</div>
+            {row.student_name}
           </div>
         ),
-        style: {
-          minWidth: "200px",
-        },
-        button: true,
-        sortable: true,
       },
       {
         name: "Date",
         selector: (row) => row.posting_date,
         sortable: true,
-      },
-      {
-        name: "Student Name",
-        selector: (row) => row.student_name,
       },
       {
         name: "Program",
@@ -78,6 +67,32 @@ const Home = ({ sidebarShow, setSidebarShow }) => {
       {
         name: "Total",
         selector: (row) => row.grand_total,
+      },
+      {
+        name: "Fee Status",
+        selector: (row) => {
+          return (
+            <div>
+              {row.is_return == 1 ? (
+                <span className="badge bg-secondary">Refund</span>
+              ) : row.outstanding_amount == 0 ? (
+                <span className="badge bg-success">Paid</span>
+              ) : row.outstanding_amount > 0 &&
+                moment(row.due_date).isSameOrAfter(moment(), "day") ? (
+                <span className="badge bg-warning">Unpaid</span>
+              ) : row.outstanding_amount > 0 &&
+                moment(row.due_date).isBefore(moment(), "day") ? (
+                <span className="badge bg-danger">Overdue</span>
+              ) : (
+                <span className="badge bg-warning">Draft</span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        name: "Student Status",
+        selector: (row) => row.custom_status,
       },
     ],
     [fees]
@@ -198,28 +213,24 @@ const Home = ({ sidebarShow, setSidebarShow }) => {
   }, []);
 
   return (
-    <div>
-      <AppSidebar sidebarShow={sidebarShow} setSidebarShow={setSidebarShow} />
-      <div className="wrapper d-flex flex-column min-vh-100">
-        <AppHeader sidebarShow={sidebarShow} setSidebarShow={setSidebarShow} />
-        <div className="body m-4 mt-0 p-2 bg-white pt-0 rounded">
-          <DataTable
-            title="Fee List"
-            columns={columns}
-            data={fees.length > 0 ? fees : []}
-            progressPending={loading}
-            pagination
-            highlightOnHover
-            pointerOnHover
-            selectableRows
-            contextActions={contextActions}
-            onSelectedRowsChange={handleRowSelected}
-            clearSelectedRows={toggleCleared}
-            selectableRowDisabled={(row) => row.parent_attachment === 1}
-          />
-        </div>
+    <>
+      <div className="body m-4 mt-0 p-2 bg-white pt-0 rounded">
+        <DataTable
+          title="Fee List"
+          columns={columns}
+          data={fees.length > 0 ? fees : []}
+          progressPending={loading}
+          pagination
+          highlightOnHover
+          pointerOnHover
+          selectableRows
+          contextActions={contextActions}
+          onSelectedRowsChange={handleRowSelected}
+          clearSelectedRows={toggleCleared}
+          selectableRowDisabled={(row) => row.parent_attachment === 1}
+        />
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,6 +1,58 @@
 import frappe
-from frappe.utils import formatdate
+from frappe.utils import formatdate, today, add_days
 
+@frappe.whitelist()
+def get_attendance_summary(start_date=None, end_date=None, student=None):
+    students = get_students()
+    # Default to the last 30 days if no date range is provided
+    if not start_date:
+        start_date = add_days(today(), -30)
+    if not end_date:
+        end_date = today()
+
+    # Fetch attendance records for the week
+    attendance_records = frappe.get_all(
+        "Student Attendance",
+        fields=["date", "status"],
+        filters=[
+            ["student", "in", [student] if student else students],
+            ["date", "between", [start_date, end_date]]
+        ],
+    )
+
+    # Initialize the data structure for each day of the week
+    progress_group = [
+        {"title": "Monday", "present": 0, "absent": 0},
+        {"title": "Tuesday", "present": 0, "absent": 0},
+        {"title": "Wednesday", "present": 0, "absent": 0},
+        {"title": "Thursday", "present": 0, "absent": 0},
+        {"title": "Friday", "present": 0, "absent": 0},
+        {"title": "Saturday", "present": 0, "absent": 0},
+        {"title": "Sunday", "present": 0, "absent": 0},
+    ]
+
+    # Process the fetched records
+    for record in attendance_records:
+        # Derive the day from the attendance_date
+        day_of_week = record["date"].strftime("%A")
+        for day in progress_group:
+            if day["title"] == day_of_week:
+                if record["status"] == "Present":
+                    day["present"] += 1
+                elif record["status"] == "Absent":
+                    day["absent"] += 1
+
+    total_present = 0
+    total_absent = 0
+
+    # Process attendance records
+    for record in attendance_records:
+        if record["status"] == "Present":
+            total_present += 1
+        elif record["status"] == "Absent":
+            total_absent += 1
+
+    return {"summary": progress_group, "total_present": total_present, "total_absent": total_absent}
 
 
 @frappe.whitelist()
@@ -13,24 +65,45 @@ def get_fee_list(isPaid=0):
         fee_list = frappe.db.get_all(
             "Fees",
             filters=[["student_id", "in", students], ["outstanding_amount", "=", 0]],
-            fields=["name", "student_name", "posting_date", "due_date", "grand_total", "total_taxes_and_charges", "program", "parent_attachment", "family_code"],
+            fields=["name", "student_name", "custom_status", "posting_date", "due_date", "grand_total", "total_taxes_and_charges", "program", "parent_attachment", "family_code", "outstanding_amount"],
         )
     else:
         fee_list = frappe.db.get_all(
             "Fees",
             filters=[["student_id", "in", students], ["outstanding_amount", ">", 0]],
-            fields=["name", "student_name", "posting_date", "due_date", "grand_total", "total_taxes_and_charges", "program", "parent_attachment", "family_code"],
+            fields=["name", "student_name", "custom_status", "posting_date", "due_date", "grand_total", "total_taxes_and_charges", "program", "parent_attachment", "family_code", "outstanding_amount"],
         )
 
     return fee_list
 
+@frappe.whitelist()
 def get_students():
-	user = frappe.session.user
-	last_doc = frappe.get_last_doc('Guardian', filters={"email_address": user})
-	gardian = frappe.get_doc("Guardian", last_doc.name)
-	students = [d.student for d in gardian.students]
+    user = frappe.session.user
+    last_doc = frappe.get_last_doc('Guardian', filters={"email_address": user})
+    # gardian = frappe.get_doc("Guardian", last_doc.name)
+    students = [d.student for d in last_doc.students]
+    return students
 
-	return students
+@frappe.whitelist()
+def get_student_details():
+    student_ids = get_students()
+    student = frappe.db.get_all(
+        "Student",
+        filters=[["name", "in", student_ids]],
+        fields=["name", "first_name", "admission_registration_id", "current_program_enrollment", "custom_student_batch"]
+    )
+    return student
+
+@frappe.whitelist()
+def get_student_batch():
+    student_ids = get_students()
+    batch = frappe.db.get_all(
+        "Student",
+        filters=[["name", "in", student_ids]],
+        fields=["custom_student_batch"],
+        pluck="custom_student_batch"
+    )
+    return batch
 
 @frappe.whitelist()
 def get_currentuser():
@@ -130,3 +203,196 @@ def get_app_logo():
     else:
         banner_image = None
     return {"app_name": app_name, "app_logo": app_logo, "banner_image": banner_image}
+
+
+
+@frappe.whitelist()
+def get_lectures_for_students(student=None, title=None, date=None, course=None):
+    students = get_students()
+    # Get the current academic year based on the provided date
+    current_academic_year = frappe.get_last_doc(
+        "Academic Year",
+        filters={"year_start_date": ["<=", today()], "year_end_date": [">=", today()]}
+    )
+
+    # Fetch all Program Enrollments for the students
+    program_enrollments = frappe.get_all(
+        "Program Enrollment",
+        filters=[
+            ["student", "in", [student] if student else students],
+            ["academic_year", "=", current_academic_year.name],
+        ],
+        pluck="name"
+    )
+    
+    # Fetch all courses for the filtered Program Enrollments
+    courses = frappe.get_all(
+        "Program Enrollment Course",
+        filters={
+            "parentfield": "courses",
+            "parenttype": "Program Enrollment",
+            "parent": ["in", program_enrollments]
+        },
+        pluck="course"
+    )
+
+    filters = []
+    if course:
+        filters.append(["course", "=", course])
+    else:
+        filters.append(["course", "in", courses])
+
+    if date:
+        filters.append(["date", "=", date])
+
+    if title:
+        filters.append(["title", "like", f"%{title}%"])
+    
+    # Fetch Lectures for the filtered courses
+    lectures = frappe.get_all("Lecture", filters=filters, fields=["*"])
+    
+    return lectures
+
+
+@frappe.whitelist()
+def get_timetable(batch):
+    timetable = frappe.get_doc("Timetable", batch)
+    return timetable
+
+
+@frappe.whitelist()
+def is_potral_enable():
+    students = get_students()
+    enable = True
+    for stu in students:
+        status = frappe.db.get_value("Student", stu, "status")
+        if status == "Fee Not Paid":
+            enable = False
+            break
+
+    return enable
+
+
+@frappe.whitelist()
+def get_current_program_course(course):
+    program = frappe.get_all("Program", filters=[
+        ["Program Course", "course", "in", course]
+    ], pluck="name")
+
+    return program
+
+@frappe.whitelist()
+def get_batch_students(batch):
+    students = frappe.get_all("Student", filters={"custom_student_batch": batch}, fields=["name", "student_name"])
+    return students
+
+
+@frappe.whitelist()
+def get_student_assignments():
+    students = get_students()
+    assignments = frappe.get_all("Batch Task", filters=[
+        ["Student Group Student", "student", "in", students]
+    ], fields=["*"])
+    return assignments
+
+
+@frappe.whitelist()
+def submit_student_assignment(name, student_id, file_url=None):
+    assignment = frappe.get_doc("Batch Task", name)
+    for student in assignment.students:
+        print(student.is_attach, student.student, student_id, "student.student == student_id ***********")
+        if student.student == student_id:
+            print(student.is_attach, "student.student == student_id ***********")
+            frappe.db.set_value("Student Batch Task", student.name, "is_attach", 1)
+            frappe.db.set_value("Student Batch Task", student.name, "attachment", file_url)
+            break
+
+    return assignment
+
+
+@frappe.whitelist()
+def get_latest_newsletter(name=None):
+    newsletter = None
+    if name:
+        newsletter = frappe.get_doc("Newsletter", name)
+    else:
+        newsletter = frappe.get_last_doc("Newsletter", filters={"for_parent": 1})
+
+    return newsletter
+
+@frappe.whitelist()
+def get_assessment_groups():
+    assessment_groups = frappe.get_all("Assessment Group", fields=["*"], pluck="name")
+    return assessment_groups
+
+@frappe.whitelist()
+def get_student_results(student=None, assessment=None, course=None):
+    students = get_students()
+    
+    if student:
+        students = [student]
+
+    filters = [["student", "in", students]]
+    if course:
+        filters.append(["course", "=", course])
+
+    if assessment:
+        filters.append(["assessment_group", "=", assessment])
+        
+    assessment_reports = frappe.get_all("Assessment Result", filters=filters, fields=["*"])
+
+    assessment_result_names = [report.name for report in assessment_reports]
+
+    assesment_result_details = frappe.get_all("Assessment Result Detail", filters=[["parent", "in", assessment_result_names]], fields=["*"])
+
+    for report in assessment_reports:
+        report["details"] = [detail for detail in assesment_result_details if detail.parent == report.name]
+
+
+
+    return assessment_reports
+
+
+@frappe.whitelist()
+def get_student_leave_applications(student=None):
+    students = get_students()
+    if student:
+        students = [student]
+
+    leave_applications = frappe.get_all("Student Leave Application", filters=[["student", "in", students]], fields=["*"])
+    return leave_applications
+
+
+@frappe.whitelist()
+def get_student_group(student):
+    student_group = frappe.get_all("Student Group", filters=[["Student Group Student", "student", "=", student]], fields=["name"], pluck="name" )
+    return student_group
+
+
+@frappe.whitelist()
+def submit_student_leave_application(
+    student=None, from_date=None, to_date=None, reason=None, student_group=None
+):
+    leave_application = frappe.get_doc({
+        "doctype": "Student Leave Application",
+        "student": student,
+        "from_date": from_date,
+        "to_date": to_date,
+        "reason": reason,
+        "attendance_based_on": "Student Group",
+        "student_group": student_group
+    }).insert()
+
+    return leave_application
+
+
+@frappe.whitelist()
+def get_student_gallery():
+    gallery = frappe.get_all("School Gallery", fields=["*"])
+    images = frappe.get_all("Gallery Attachments", filters=[
+        ["parent", "in", [g.name for g in gallery]]
+    ], fields=["*"])
+    for g in gallery:
+        g["images"] = [i for i in images if i.parent == g.name]
+
+    return gallery

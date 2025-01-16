@@ -39,6 +39,7 @@ const AppHeaderDropdown = ({ user }) => {
         </CDropdownHeader>
         <CDropdownDivider />
         <CDropdownItem
+          style={{ cursor: "pointer" }}
           onClick={async () => {
             await logout();
             window.location.pathname = "/portal/parent-login";

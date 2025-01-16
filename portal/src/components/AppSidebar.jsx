@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable react/prop-types */
+import React, { useState } from "react";
 
 import {
   CCloseButton,
@@ -13,7 +14,18 @@ import {
 import CIcon from "@coreui/icons-react";
 import sowaanLogo from "../assets/sowaan.png";
 import { AppSidebarNav } from "./AppSidebarNav";
-import { cibTodoist, cilDollar } from "@coreui/icons";
+import {
+  cibSlickpic,
+  cilAvTimer,
+  cilChart,
+  cilCheck,
+  cilDisabled,
+  cilDollar,
+  cilFile,
+  cilFolderOpen,
+  cilHistory,
+  cilNewspaper,
+} from "@coreui/icons";
 
 const AppSidebar = ({ sidebarShow, setSidebarShow }) => {
   const [unfoldable, setUnfoldable] = useState(false);
@@ -34,13 +46,13 @@ const AppSidebar = ({ sidebarShow, setSidebarShow }) => {
         <CSidebarBrand to="/">
           {!unfoldable ? (
             <CImage
-              customClassName="sidebar-brand-full"
+              className="sidebar-brand-full"
               src={appData.app_logo ?? sowaanLogo}
               height={50}
             />
           ) : (
             <CImage
-              customClassName="sidebar-brand-narrow"
+              className="sidebar-brand-narrow"
               height={50}
               src={appData.banner_image ?? sowaanLogo}
             />
@@ -56,15 +68,63 @@ const AppSidebar = ({ sidebarShow, setSidebarShow }) => {
         items={[
           {
             component: CNavItem,
+            name: "Attendance",
+            to: "/",
+            icon: <CIcon icon={cilChart} className="nav-icon" />,
+          },
+          {
+            component: CNavItem,
             name: "Fees",
             to: "/student-fee",
-            icon: <CIcon icon={cilDollar} customClassName="nav-icon" />,
+            icon: <CIcon icon={cilDollar} className="nav-icon" />,
           },
           {
             component: CNavItem,
             name: "Paid Fees",
             to: "/student-paid-fee",
-            icon: <CIcon icon={cibTodoist} customClassName="nav-icon" />,
+            icon: <CIcon icon={cilCheck} className="nav-icon" />,
+          },
+          {
+            component: CNavItem,
+            name: "Lecutre Repository",
+            to: "/lectures",
+            icon: <CIcon icon={cilFile} className="nav-icon" />,
+          },
+          {
+            component: CNavItem,
+            name: "Timetable",
+            to: "/timetable",
+            icon: <CIcon icon={cilAvTimer} className="nav-icon" />,
+          },
+          {
+            component: CNavItem,
+            name: "Assignment",
+            to: "/assignment",
+            icon: <CIcon icon={cilFolderOpen} className="nav-icon" />,
+          },
+          {
+            component: CNavItem,
+            name: "Newsletter",
+            to: "/newsletter",
+            icon: <CIcon icon={cilNewspaper} className="nav-icon" />,
+          },
+          {
+            component: CNavItem,
+            name: "Progress Report",
+            to: "/progress-report",
+            icon: <CIcon icon={cilHistory} className="nav-icon" />,
+          },
+          {
+            component: CNavItem,
+            name: "Student Leave",
+            to: "/student-leave",
+            icon: <CIcon icon={cilDisabled} className="nav-icon" />,
+          },
+          {
+            component: CNavItem,
+            name: "Gallery",
+            to: "/gallery",
+            icon: <CIcon icon={cibSlickpic} className="nav-icon" />,
           },
         ]}
       />

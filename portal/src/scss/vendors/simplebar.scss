@@ -4,15 +4,6 @@
   min-height: 100%;
 }
 
-.NbHYZ {
-  min-width: 200px !important;
-  padding: 0px 16px !important;
-}
-
-.boKTiX {
-  min-width: 200px !important;
-}
-
 .sidebar-light {
   background-color: #6c5ce7;
   background-image: linear-gradient(180deg, #6c5ce7 10%, #224abe 100%);
@@ -26,3 +17,33 @@
 .sidebar-nav .nav-link.active {
   color: var(--cui-sidebar-nav-link-active-color) !important;
 }
+
+.selected {
+  background-color: #f0f8ff; /* Light blue for selection */
+  transition: background-color 0.3s ease;
+}
+
+.date-picker-input {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--cui-date-picker-color);
+  flex: 1 1 auto;
+  font-family: var(--cui-date-picker-font-family);
+  font-size: var(--cui-date-picker-font-size);
+  font-weight: var(--cui-date-picker-font-weight);
+  line-height: var(--cui-date-picker-line-height);
+  min-width: 0;
+  padding: 0;
+  position: relative;
+  width: 1%;
+  outline: none
+}
+
+.date-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+    

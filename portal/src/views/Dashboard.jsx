@@ -1,322 +1,215 @@
-import {
-  cibCcAmex,
-  cibCcApplePay,
-  cibCcMastercard,
-  cibCcPaypal,
-  cibCcStripe,
-  cibCcVisa,
-  cibGoogle,
-  cibFacebook,
-  cibLinkedin,
-  cifBr,
-  cifEs,
-  cifFr,
-  cifIn,
-  cifPl,
-  cifUs,
-  cibTwitter,
-  cilPeople,
-  cilUser,
-  cilUserFemale,
-} from "@coreui/icons";
+/* eslint-disable react/prop-types */
+import { cilUser } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import {
-  CAvatar,
+  CButton,
+  CButtonGroup,
   CCard,
   CCardBody,
   CCardHeader,
   CCol,
   CProgress,
   CRow,
-  CTable,
-  CTableBody,
-  CTableDataCell,
-  CTableHead,
-  CTableHeaderCell,
-  CTableRow,
 } from "@coreui/react";
-import AppSidebar from "../components/AppSidebar";
-import AppHeader from "../components/AppHeader";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import moment from "moment";
 
-const Dashboard = ({ sidebarShow, setSidebarShow }) => {
-  const progressGroupExample1 = [
-    { title: "Monday", value1: 34, value2: 78 },
-    { title: "Tuesday", value1: 56, value2: 94 },
-    { title: "Wednesday", value1: 12, value2: 67 },
-    { title: "Thursday", value1: 43, value2: 91 },
-    { title: "Friday", value1: 22, value2: 73 },
-    { title: "Saturday", value1: 53, value2: 82 },
-    { title: "Sunday", value1: 9, value2: 69 },
-  ];
+const Dashboard = () => {
+  const [progressGroup, setProgressGroup] = useState([]);
+  const [totals, setTotals] = useState({ present: 0, absent: 0 });
+  const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [activeButton, setActiveButton] = useState("Month");
+  const [dateRange, setDateRange] = useState({
+    startDate: moment().startOf("month"),
+    endDate: moment().endOf("month"),
+  });
 
-  const progressGroupExample2 = [
-    { title: "Male", icon: cilUser, value: 53 },
-    { title: "Female", icon: cilUserFemale, value: 43 },
-  ];
+  const handleButtonClick = (value) => {
+    setActiveButton(value);
+    const currentDate = moment();
+    const ranges = {
+      Day: [
+        currentDate.startOf("day").format(),
+        currentDate.endOf("day").format(),
+      ],
+      Week: [
+        currentDate.startOf("week").format(),
+        currentDate.endOf("week").format(),
+      ],
+      Month: [
+        currentDate.startOf("month").format(),
+        currentDate.endOf("month").format(),
+      ],
+      Year: [
+        currentDate.startOf("year").format(),
+        currentDate.endOf("year").format(),
+      ],
+    };
+    const [start, end] = ranges[value] || ranges["Month"];
+    setDateRange({ startDate: start, endDate: end });
+  };
+  // Fetch attendance summary
+  const attendanceSummary = async (startDate, endDate) => {
+    const student = students[selectedStudent] || {};
+    try {
+      const response = await axios.get(
+        "/api/method/parent_portal.parent_portal.api.get_attendance_summary",
+        {
+          params: {
+            start_date: startDate,
+            end_date: endDate,
+            student: student.name,
+          },
+        }
+      );
+      const { summary, total_present, total_absent } = response.data.message;
+      setProgressGroup(summary);
+      setTotals({ present: total_present, absent: total_absent });
+    } catch (error) {
+      console.error("Failed to fetch attendance summary:", error);
+    }
+  };
+  // Fetch students list
+  const fetchStudents = async () => {
+    try {
+      const response = await axios.get(
+        "/api/method/parent_portal.parent_portal.api.get_student_details"
+      );
+      setStudents(response.data.message);
+    } catch (error) {
+      console.error("Failed to fetch students:", error);
+    }
+  };
 
-  const tableExample = [
-    {
-      avatar: { src: "", status: "success" },
-      user: {
-        name: "Yiorgos Avraamu",
-        new: true,
-        registered: "Jan 1, 2023",
-      },
-      country: { name: "USA", flag: cifUs },
-      usage: {
-        value: 50,
-        period: "Jun 11, 2023 - Jul 10, 2023",
-        color: "success",
-      },
-      payment: { name: "Mastercard", icon: cibCcMastercard },
-      activity: "10 sec ago",
-    },
-    {
-      avatar: { src: "", status: "danger" },
-      user: {
-        name: "Avram Tarasios",
-        new: false,
-        registered: "Jan 1, 2023",
-      },
-      country: { name: "Brazil", flag: cifBr },
-      usage: {
-        value: 22,
-        period: "Jun 11, 2023 - Jul 10, 2023",
-        color: "info",
-      },
-      payment: { name: "Visa", icon: cibCcVisa },
-      activity: "5 minutes ago",
-    },
-    {
-      avatar: { src: "", status: "warning" },
-      user: { name: "Quintin Ed", new: true, registered: "Jan 1, 2023" },
-      country: { name: "India", flag: cifIn },
-      usage: {
-        value: 74,
-        period: "Jun 11, 2023 - Jul 10, 2023",
-        color: "warning",
-      },
-      payment: { name: "Stripe", icon: cibCcStripe },
-      activity: "1 hour ago",
-    },
-    {
-      avatar: { src: "", status: "secondary" },
-      user: { name: "Enéas Kwadwo", new: true, registered: "Jan 1, 2023" },
-      country: { name: "France", flag: cifFr },
-      usage: {
-        value: 98,
-        period: "Jun 11, 2023 - Jul 10, 2023",
-        color: "danger",
-      },
-      payment: { name: "PayPal", icon: cibCcPaypal },
-      activity: "Last month",
-    },
-    {
-      avatar: { src: "", status: "success" },
-      user: {
-        name: "Agapetus Tadeáš",
-        new: true,
-        registered: "Jan 1, 2023",
-      },
-      country: { name: "Spain", flag: cifEs },
-      usage: {
-        value: 22,
-        period: "Jun 11, 2023 - Jul 10, 2023",
-        color: "primary",
-      },
-      payment: { name: "Google Wallet", icon: cibCcApplePay },
-      activity: "Last week",
-    },
-    {
-      avatar: { src: "", status: "danger" },
-      user: {
-        name: "Friderik Dávid",
-        new: true,
-        registered: "Jan 1, 2023",
-      },
-      country: { name: "Poland", flag: cifPl },
-      usage: {
-        value: 43,
-        period: "Jun 11, 2023 - Jul 10, 2023",
-        color: "success",
-      },
-      payment: { name: "Amex", icon: cibCcAmex },
-      activity: "Last week",
-    },
-  ];
+  // Fetch students on component mount
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  useEffect(() => {
+    attendanceSummary(
+      dateRange.startDate.toString(),
+      dateRange.endDate.toString()
+    );
+  }, [dateRange, selectedStudent]);
+
+  // Header for the date range
+  const DateRangeHeader = () => (
+    <div className="mb-2">
+      {activeButton === "Day" && (
+        <div className="small text-body-secondary">Today</div>
+      )}
+      {activeButton !== "Day" && (
+        <div className="small text-body-secondary">
+          {moment(dateRange.startDate).format("DD MMMM")} -{" "}
+          {moment(dateRange.endDate).format("DD MMMM YYYY")}
+        </div>
+      )}
+    </div>
+  );
+
+  // Individual student row
+  const StudentRow = ({ student, index }) => (
+    <div
+      className={`progress-group mb-2 p-2 rounded ${
+        selectedStudent === index ? "selected" : ""
+      }`}
+      onClick={() =>
+        setSelectedStudent((prevSelected) =>
+          prevSelected === index ? null : index
+        )
+      }
+      style={{
+        cursor: "pointer",
+        backgroundColor: selectedStudent === index ? "#f0f8ff" : "transparent",
+      }}
+    >
+      <div className="progress-group-header d-flex align-items-center">
+        <CIcon className="me-2" icon={cilUser} size="lg" />
+        <span>{student.first_name}</span>
+        <span className="ms-auto fw-semibold">
+          {student.admission_registration_id}
+        </span>
+      </div>
+    </div>
+  );
+
   return (
-    <div>
-      <AppSidebar sidebarShow={sidebarShow} setSidebarShow={setSidebarShow} />
-      <div className="wrapper d-flex flex-column min-vh-100">
-        <AppHeader sidebarShow={sidebarShow} setSidebarShow={setSidebarShow} />
-        <CRow className="mx-4">
-          <CCol xs>
-            <CCard className="mb-4">
-              <CCardHeader>Traffic {" & "} Sales</CCardHeader>
-              <CCardBody>
+    <CRow className="mx-4">
+      <CCol xs>
+        <CCard className="mb-4">
+          <CCardHeader>Attendance</CCardHeader>
+          <CCardBody>
+            <CRow>
+              <CCol xs={12} md={6} xl={6}>
                 <CRow>
-                  <CCol xs={12} md={6} xl={6}>
-                    <CRow>
-                      <CCol xs={6}>
-                        <div className="border-start border-start-4 border-start-info py-1 px-3">
-                          <div className="text-body-secondary text-truncate small">
-                            New Clients
-                          </div>
-                          <div className="fs-5 fw-semibold">9,123</div>
-                        </div>
-                      </CCol>
-                      <CCol xs={6}>
-                        <div className="border-start border-start-4 border-start-danger py-1 px-3 mb-3">
-                          <div className="text-body-secondary text-truncate small">
-                            Recurring Clients
-                          </div>
-                          <div className="fs-5 fw-semibold">22,643</div>
-                        </div>
-                      </CCol>
-                    </CRow>
-                    <hr className="mt-0" />
-                    {progressGroupExample1.map((item, index) => (
-                      <div className="progress-group mb-4" key={index}>
-                        <div className="progress-group-prepend">
-                          <span className="text-body-secondary small">
-                            {item.title}
-                          </span>
-                        </div>
-                        <div className="progress-group-bars">
-                          <CProgress thin color="info" value={item.value1} />
-                          <CProgress thin color="danger" value={item.value2} />
-                        </div>
+                  <CCol xs={6}>
+                    <div className="border-start border-start-4 border-start-success py-1 px-3">
+                      <div className="text-body-secondary text-truncate small">
+                        Total Present
                       </div>
-                    ))}
+                      <div className="fs-5 fw-semibold">{totals.present}</div>
+                    </div>
                   </CCol>
-                  <CCol xs={12} md={6} xl={6}>
-                    <CRow>
-                      <CCol xs={6}>
-                        <div className="border-start border-start-4 border-start-warning py-1 px-3 mb-3">
-                          <div className="text-body-secondary text-truncate small">
-                            Pageviews
-                          </div>
-                          <div className="fs-5 fw-semibold">78,623</div>
-                        </div>
-                      </CCol>
-                      <CCol xs={6}>
-                        <div className="border-start border-start-4 border-start-success py-1 px-3 mb-3">
-                          <div className="text-body-secondary text-truncate small">
-                            Organic
-                          </div>
-                          <div className="fs-5 fw-semibold">49,123</div>
-                        </div>
-                      </CCol>
-                    </CRow>
-
-                    <hr className="mt-0" />
-
-                    {progressGroupExample2.map((item, index) => (
-                      <div className="progress-group mb-4" key={index}>
-                        <div className="progress-group-header">
-                          <CIcon className="me-2" icon={item.icon} size="lg" />
-                          <span>{item.title}</span>
-                          <span className="ms-auto fw-semibold">
-                            {item.value}%
-                          </span>
-                        </div>
-                        <div className="progress-group-bars">
-                          <CProgress thin color="warning" value={item.value} />
-                        </div>
+                  <CCol xs={6}>
+                    <div className="border-start border-start-4 border-start-danger py-1 px-3 mb-3">
+                      <div className="text-body-secondary text-truncate small">
+                        Total Absent
                       </div>
-                    ))}
-
-                    <div className="mb-5"></div>
+                      <div className="fs-5 fw-semibold">{totals.absent}</div>
+                    </div>
+                  </CCol>
+                </CRow>
+                <hr className="mt-0" />
+                {progressGroup.map((item, index) => (
+                  <div className="progress-group mb-4" key={index}>
+                    <div className="progress-group-prepend">
+                      <span className="text-body-secondary small">
+                        {item.title}
+                      </span>
+                    </div>
+                    <div className="progress-group-bars">
+                      <CProgress thin color="success" value={item.present} />
+                      <CProgress thin color="danger" value={item.absent} />
+                    </div>
+                  </div>
+                ))}
+              </CCol>
+              <CCol xs={12} md={6} xl={6}>
+                <CRow>
+                  <CCol xs={6}></CCol>
+                  <CCol xs={6}>
+                    <CButtonGroup className="float-end me-3 mb-2">
+                      {["Day", "Week", "Month", "Year"].map((value) => (
+                        <CButton
+                          color="outline-secondary"
+                          key={value}
+                          className="mx-0"
+                          active={value === activeButton}
+                          onClick={() => handleButtonClick(value)}
+                        >
+                          {value}
+                        </CButton>
+                      ))}
+                    </CButtonGroup>
+                    <DateRangeHeader />
                   </CCol>
                 </CRow>
 
-                <br />
-
-                <CTable align="middle" className="mb-0 border" hover responsive>
-                  <CTableHead className="text-nowrap">
-                    <CTableRow>
-                      <CTableHeaderCell className="bg-body-tertiary text-center">
-                        <CIcon icon={cilPeople} />
-                      </CTableHeaderCell>
-                      <CTableHeaderCell className="bg-body-tertiary">
-                        User
-                      </CTableHeaderCell>
-                      <CTableHeaderCell className="bg-body-tertiary text-center">
-                        Country
-                      </CTableHeaderCell>
-                      <CTableHeaderCell className="bg-body-tertiary">
-                        Usage
-                      </CTableHeaderCell>
-                      <CTableHeaderCell className="bg-body-tertiary text-center">
-                        Payment Method
-                      </CTableHeaderCell>
-                      <CTableHeaderCell className="bg-body-tertiary">
-                        Activity
-                      </CTableHeaderCell>
-                    </CTableRow>
-                  </CTableHead>
-                  <CTableBody>
-                    {tableExample.map((item, index) => (
-                      <CTableRow v-for="item in tableItems" key={index}>
-                        <CTableDataCell className="text-center">
-                          <CAvatar
-                            size="md"
-                            src={item.avatar.src}
-                            status={item.avatar.status}
-                          />
-                        </CTableDataCell>
-                        <CTableDataCell>
-                          <div>{item.user.name}</div>
-                          <div className="small text-body-secondary text-nowrap">
-                            <span>{item.user.new ? "New" : "Recurring"}</span> |
-                            Registered: {item.user.registered}
-                          </div>
-                        </CTableDataCell>
-                        <CTableDataCell className="text-center">
-                          <CIcon
-                            size="xl"
-                            icon={item.country.flag}
-                            title={item.country.name}
-                          />
-                        </CTableDataCell>
-                        <CTableDataCell>
-                          <div className="d-flex justify-content-between text-nowrap">
-                            <div className="fw-semibold">
-                              {item.usage.value}%
-                            </div>
-                            <div className="ms-3">
-                              <small className="text-body-secondary">
-                                {item.usage.period}
-                              </small>
-                            </div>
-                          </div>
-                          <CProgress
-                            thin
-                            color={item.usage.color}
-                            value={item.usage.value}
-                          />
-                        </CTableDataCell>
-                        <CTableDataCell className="text-center">
-                          <CIcon size="xl" icon={item.payment.icon} />
-                        </CTableDataCell>
-                        <CTableDataCell>
-                          <div className="small text-body-secondary text-nowrap">
-                            Last login
-                          </div>
-                          <div className="fw-semibold text-nowrap">
-                            {item.activity}
-                          </div>
-                        </CTableDataCell>
-                      </CTableRow>
-                    ))}
-                  </CTableBody>
-                </CTable>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
-      </div>
-    </div>
+                <hr className="mt-0" />
+                <div style={{ height: "340px", overflow: "auto" }}>
+                  {students.map((student, index) => (
+                    <StudentRow key={index} student={student} index={index} />
+                  ))}
+                </div>
+              </CCol>
+            </CRow>
+          </CCardBody>
+        </CCard>
+      </CCol>
+    </CRow>
   );
 };
 

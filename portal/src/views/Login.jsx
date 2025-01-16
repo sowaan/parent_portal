@@ -1,24 +1,18 @@
 import { useFrappeAuth } from "frappe-react-sdk";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { json, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   CButton,
-  CCard,
-  CCardBody,
-  CCardGroup,
-  CCol,
-  CContainer,
   CForm,
   CFormInput,
   CImage,
   CInputGroup,
   CInputGroupText,
-  CRow,
   CSpinner,
 } from "@coreui/react";
 import CIcon from "@coreui/icons-react";
-import { cilEyedropper, cilLockLocked, cilLowVision } from "@coreui/icons";
+import { cilLowVision } from "@coreui/icons";
 import "./LoginPage.css";
 import students from "../assets/student-login.svg";
 import sowaanLogo from "../assets/sowaan.png";
@@ -56,7 +50,7 @@ const Login = () => {
         const user = userRes.data.message;
         localStorage.setItem("user", JSON.stringify(user));
         // Navigate or perform post-login actions
-        window.location.pathname = "/portal/student-fee";
+        window.location.pathname = "/portal";
         setLoading(false);
       }
     } catch (err) {
