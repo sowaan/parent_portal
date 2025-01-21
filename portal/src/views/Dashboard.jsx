@@ -21,13 +21,17 @@ const Dashboard = () => {
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [activeButton, setActiveButton] = useState("Month");
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateRange, setDateRange] = useState({
     startDate: moment().startOf("month"),
     endDate: moment().endOf("month"),
   });
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const handleButtonClick = (value) => {
     setActiveButton(value);
+    setShowDatePicker(value === "Custom");
     const currentDate = moment();
     const ranges = {
       Day: [
@@ -46,8 +50,10 @@ const Dashboard = () => {
         currentDate.startOf("year").format(),
         currentDate.endOf("year").format(),
       ],
+      Custom: [startDate, endDate],
     };
     const [start, end] = ranges[value] || ranges["Month"];
+    console.log(start, end, "Starting and ending ");
     setDateRange({ startDate: start, endDate: end });
   };
   // Fetch attendance summary
@@ -66,6 +72,8 @@ const Dashboard = () => {
       );
       const { summary, total_present, total_absent } = response.data.message;
       setProgressGroup(summary);
+      console.log(total_present, total_absent, "total");
+
       setTotals({ present: total_present, absent: total_absent });
     } catch (error) {
       console.error("Failed to fetch attendance summary:", error);
@@ -182,19 +190,73 @@ const Dashboard = () => {
                   <CCol xs={6}></CCol>
                   <CCol xs={6}>
                     <CButtonGroup className="float-end me-3 mb-2">
-                      {["Day", "Week", "Month", "Year"].map((value) => (
-                        <CButton
-                          color="outline-secondary"
-                          key={value}
-                          className="mx-0"
-                          active={value === activeButton}
-                          onClick={() => handleButtonClick(value)}
-                        >
-                          {value}
-                        </CButton>
-                      ))}
+                      {["Day", "Week", "Month", "Year", "Custom"].map(
+                        (value) => (
+                          <CButton
+                            color="outline-secondary"
+                            key={value}
+                            className={`"mx-0" ${
+                              value == "Custom" ? "dropdown-toggle" : ""
+                            }`}
+                            active={value === activeButton}
+                            onClick={() => handleButtonClick(value)}
+                          >
+                            {value}
+                          </CButton>
+                        )
+                      )}
                     </CButtonGroup>
-                    <DateRangeHeader />
+                    {showDatePicker && (
+                      <div
+                        className="dropdown-menu show p-3 border rounded"
+                        style={{
+                          backgroundColor: "#f8f9fa",
+                          maxWidth: "300px",
+                          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                        }}
+                      >
+                        <div className="mb-2">
+                          <label className="me-2">Start Date:</label>
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="form-control d-inline-block w-auto"
+                          />
+                        </div>
+                        <div className="mb-2">
+                          <label className="me-2">End Date:</label>
+                          <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="form-control d-inline-block w-auto"
+                          />
+                        </div>
+                        <div>
+                          <CButton
+                            color="primary"
+                            className="me-2"
+                            onClick={() => {
+                              setDateRange({
+                                startDate,
+                                endDate,
+                              });
+                              setShowDatePicker(false);
+                            }}
+                          >
+                            Apply
+                          </CButton>
+                          <CButton
+                            color="secondary"
+                            onClick={() => setShowDatePicker(false)}
+                          >
+                            Cancel
+                          </CButton>
+                        </div>
+                      </div>
+                    )}
+                    <DateRangeHeader dateRange={dateRange} />
                   </CCol>
                 </CRow>
 
