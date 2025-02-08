@@ -68,24 +68,6 @@ const DropdownUser = () => {
                 My Profile
               </Link>
             </li>
-            <li>
-              <Link
-                to="#"
-                className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
-              >
-                <IconContacts />
-                My Contacts
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/settings"
-                className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
-              >
-                <IconSetting />
-                Account Settings
-              </Link>
-            </li>
           </ul>
           {isLoading ? (
             <div>Loading ...</div>

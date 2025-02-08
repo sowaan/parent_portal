@@ -66,7 +66,6 @@ const PaidFee = () => {
   );
 
   return (
-    <>
       <div className={CardClass}>
         <DataTable
           title={<h2 className={TableHeaderClass}>Paid Fees</h2>}
@@ -79,7 +78,6 @@ const PaidFee = () => {
           theme="default"
         />
       </div>
-    </>
   );
 };
 

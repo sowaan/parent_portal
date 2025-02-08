@@ -389,7 +389,10 @@ def get_student_leave_applications(student=None):
 
 @frappe.whitelist()
 def get_student_group(student):
-    student_group = frappe.get_all("Student Group", filters=[["Student Group Student", "student", "=", student]], fields=["name"], pluck="name" )
+    students = get_students()
+    if student:
+        students = [student]
+    student_group = frappe.get_all("Student Group", filters=[["Student Group Student", "student", "in", students]], fields=["name"], pluck="name" )
     return student_group
 
 

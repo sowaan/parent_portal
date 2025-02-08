@@ -31,6 +31,7 @@ const Profile = () => {
                     name="fullName"
                     id="fullName"
                     defaultValue={user && user.full_name}
+                    disabled
                   />
                 </div>
               </div>
@@ -48,6 +49,7 @@ const Profile = () => {
                   name="phoneNumber"
                   id="phoneNumber"
                   defaultValue={user && user.phone}
+                  disabled
                 />
               </div>
             </div>
@@ -69,6 +71,7 @@ const Profile = () => {
                   name="emailAddress"
                   id="emailAddress"
                   defaultValue={user && user.email}
+                  disabled
                 />
               </div>
             </div>
@@ -86,6 +89,7 @@ const Profile = () => {
                 name="Username"
                 id="Username"
                 defaultValue={user && user.name}
+                disabled
               />
             </div>
 
@@ -135,6 +139,7 @@ const Profile = () => {
                   rows={6}
                   placeholder="Write your bio here"
                   defaultValue={user && user.bio}
+                  disabled
                 ></textarea>
               </div>
             </div>
