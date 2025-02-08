@@ -12,7 +12,7 @@ import {
   CSidebarToggler,
 } from "@coreui/react";
 import CIcon from "@coreui/icons-react";
-import sowaanLogo from "../assets/sowaan.png";
+import sowaanLogo from "../images/logo/sowaan.png";
 import { AppSidebarNav } from "./AppSidebarNav";
 import {
   cibSlickpic,

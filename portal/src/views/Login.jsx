@@ -15,7 +15,7 @@ import CIcon from "@coreui/icons-react";
 import { cilLowVision } from "@coreui/icons";
 import "./LoginPage.css";
 import students from "../assets/student-login.svg";
-import sowaanLogo from "../assets/sowaan.png";
+import sowaanLogo from "../images/logo/sowaan.png";
 
 const Login = () => {
   const { isLoading, currentUser } = useFrappeAuth();

@@ -2,34 +2,29 @@ import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useFrappeAuth } from "frappe-react-sdk";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
-import {
-  CSpinner,
-  CToast,
-  CToastBody,
-  CToastClose,
-  CToaster,
-} from "@coreui/react";
-import "./scss/style.scss";
-
-// We use those styles to show code examples, you should remove them in your application.
-import "./scss/examples.scss";
+import { CToast, CToastBody, CToastClose, CToaster } from "@coreui/react";
 import axios from "axios";
 import Lectures from "./views/Lectures";
 import Wrapper from "./components/Wrapper";
+import Loader from "./common/Loader";
 import StudentLeaveForm from "./views/StudentLeave/StudentLeaveForm";
+import DefaultLayout from "./layout/DefaultLayout";
+import Profile from "./pages/Profile";
+import UnPaidFee from "./pages/FeePages/UnPaidFee";
 const Dashboard = React.lazy(() => import("./views/Dashboard"));
 const Home = React.lazy(() => import("./views/Home"));
-const PaidFee = React.lazy(() => import("./views/PaidFee"));
+const PaidFee = React.lazy(() => import("./pages/FeePages/PaidFee"));
 const Login = React.lazy(() => import("./views/Login"));
-const FeeForm = React.lazy(() => import("./views/FeeForm"));
+const SignIn = React.lazy(() => import("./pages/SignIn"));
+const FeeForm = React.lazy(() => import("./pages/FeePages/FeeForm"));
 const Timetable = React.lazy(() => import("./views/Timetable"));
 const Assignment = React.lazy(() => import("./views/Assignment/index"));
-const AssignmentForm = React.lazy(() =>
-  import("./views/Assignment/AssignmentForm")
+const AssignmentForm = React.lazy(
+  () => import("./views/Assignment/AssignmentForm")
 );
 const Newsletter = React.lazy(() => import("./views/Newsletter"));
-const NewsletterList = React.lazy(() =>
-  import("./views/Newsletter/NewsletterList")
+const NewsletterList = React.lazy(
+  () => import("./views/Newsletter/NewsletterList")
 );
 const ProgressReport = React.lazy(() => import("./views/ProgressReport"));
 const StudentLeave = React.lazy(() => import("./views/StudentLeave"));
@@ -37,10 +32,9 @@ const Gallery = React.lazy(() => import("./views/Gallery"));
 const GalleryView = React.lazy(() => import("./views/GalleryView"));
 
 function App() {
-  const [sidebarShow, setSidebarShow] = useState(true);
+  const { pathname } = useLocation();
   const { isLoading, currentUser } = useFrappeAuth();
   const [enable, setEnable] = useState(true);
-  const location = useLocation();
   const [toast, addToast] = useState(0);
   const toaster = useRef();
 
@@ -65,15 +59,20 @@ function App() {
   }
 
   async function portalAvailability() {
-    await axios
-      .get("/api/method/parent_portal.parent_portal.api.is_potral_enable")
-      .then((res) => {
-        setEnable(true);
-        // setEnable(res.data.message);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch logo:", error.response || error.message);
-      });
+    if (currentUser) {
+      await axios
+        .get("/api/method/parent_portal.parent_portal.api.is_potral_enable")
+        .then((res) => {
+          setEnable(true);
+          // setEnable(res.data.message);
+        })
+        .catch((error) => {
+          console.error(
+            "Failed to fetch logo:",
+            error.response || error.message
+          );
+        });
+    }
   }
 
   useEffect(() => {
@@ -82,7 +81,7 @@ function App() {
 
   useEffect(() => {
     portalAvailability();
-  }, []);
+  }, [currentUser]);
 
   // Restrict access dynamically based on `enable`
   const isAllowedPath = (path) => {
@@ -97,8 +96,7 @@ function App() {
     const handleLocationChange = () => {
       if (
         !enable &&
-        (location.pathname === "/student-fee" ||
-          location.pathname.startsWith("/student-fee/"))
+        (pathname === "/student-fee" || pathname.startsWith("/student-fee/"))
       ) {
         addToast(exampleToast);
         // Show toast when specific paths are accessed
@@ -106,24 +104,14 @@ function App() {
     };
 
     handleLocationChange();
-  }, [location.pathname, enable]);
+  }, [pathname, enable]);
 
   if (isLoading) {
-    return (
-      <div className="pt-3 text-center">
-        <CSpinner color="primary" variant="grow" />
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
-    <Suspense
-      fallback={
-        <div className="pt-3 text-center">
-          <CSpinner color="primary" variant="grow" />
-        </div>
-      }
-    >
+    <Suspense fallback={<Loader />}>
       <CToaster
         className="p-3"
         placement="top-end"
@@ -133,10 +121,10 @@ function App() {
       {!currentUser ? (
         <Routes>
           <Route path="*" element={<Navigate to="/parent-login" replace />} />
-          <Route path="/parent-login" element={<Login />} />
+          <Route path="/parent-login" element={<SignIn />} />
         </Routes>
       ) : (
-        <Wrapper sidebarShow={sidebarShow} setSidebarShow={setSidebarShow}>
+        <DefaultLayout>
           <Routes>
             <Route
               path="/parent-login"
@@ -145,8 +133,8 @@ function App() {
             <Route
               path="/student-fee"
               element={
-                isAllowedPath(location.pathname) ? (
-                  <Home />
+                isAllowedPath(pathname) ? (
+                  <UnPaidFee />
                 ) : (
                   <Navigate to="/student-fee" replace />
                 )
@@ -155,7 +143,7 @@ function App() {
             <Route
               path="/student-fee/:slug"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <FeeForm />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -165,7 +153,7 @@ function App() {
             <Route
               path="/student-paid-fee"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <PaidFee />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -175,7 +163,7 @@ function App() {
             <Route
               path="/lectures"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <Lectures />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -185,7 +173,7 @@ function App() {
             <Route
               path="/timetable"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <Timetable />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -195,7 +183,7 @@ function App() {
             <Route
               path="/assignment"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <Assignment />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -205,7 +193,7 @@ function App() {
             <Route
               path="/assignment/:slug"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <AssignmentForm />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -215,7 +203,7 @@ function App() {
             <Route
               path="/newsletter"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <Newsletter />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -225,7 +213,7 @@ function App() {
             <Route
               path="/newsletter/:slug"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <Newsletter />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -235,7 +223,7 @@ function App() {
             <Route
               path="/newsletter/list"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <NewsletterList />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -245,7 +233,7 @@ function App() {
             <Route
               path="/progress-report"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <ProgressReport />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -255,7 +243,7 @@ function App() {
             <Route
               path="/student-leave"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <StudentLeave />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -265,7 +253,7 @@ function App() {
             <Route
               path="/student-leave/new"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <StudentLeaveForm />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -275,7 +263,7 @@ function App() {
             <Route
               path="/student-leave/:slug"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <StudentLeaveForm />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -285,7 +273,7 @@ function App() {
             <Route
               path="/gallery"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <Gallery />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -295,8 +283,18 @@ function App() {
             <Route
               path="/gallery/:slug"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <GalleryView />
+                ) : (
+                  <Navigate to="/student-fee" replace />
+                )
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                isAllowedPath(pathname) ? (
+                  <Profile />
                 ) : (
                   <Navigate to="/student-fee" replace />
                 )
@@ -305,7 +303,7 @@ function App() {
             <Route
               path="*"
               element={
-                isAllowedPath(location.pathname) ? (
+                isAllowedPath(pathname) ? (
                   <Dashboard />
                 ) : (
                   <Navigate to="/student-fee" replace />
@@ -313,7 +311,7 @@ function App() {
               }
             />
           </Routes>
-        </Wrapper>
+        </DefaultLayout>
       )}
     </Suspense>
   );

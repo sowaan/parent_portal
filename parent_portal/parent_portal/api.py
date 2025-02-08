@@ -42,6 +42,9 @@ def get_attendance_summary(start_date=None, end_date=None, student=None):
                 elif record["status"] == "Absent":
                     day["absent"] += 1
 
+    present = [entry['present'] for entry in progress_group]
+    absent = [entry['absent'] for entry in progress_group]
+
     total_present = 0
     total_absent = 0
 
@@ -52,29 +55,41 @@ def get_attendance_summary(start_date=None, end_date=None, student=None):
         elif record["status"] == "Absent":
             total_absent += 1
 
-    return {"summary": progress_group, "total_present": total_present, "total_absent": total_absent}
+    return {"summary": progress_group, 'presents': present, 'absents': absent, "total_present": total_present, "total_absent": total_absent}
 
 
 @frappe.whitelist()
 def get_fee_list(isPaid=0):
-    # Fetch students
-    students = get_students()
+    try:
+        students = get_students()
+        if not students:
+            frappe.throw("No students found.", frappe.DoesNotExistError)
 
-    fee_list = []
-    if isPaid:
+        outstanding_filter = "=" if isPaid else ">"
+        
         fee_list = frappe.db.get_all(
             "Fees",
-            filters=[["student_id", "in", students], ["outstanding_amount", "=", 0]],
-            fields=["name", "student_name", "custom_status", "posting_date", "due_date", "grand_total", "total_taxes_and_charges", "program", "parent_attachment", "family_code", "outstanding_amount"],
-        )
-    else:
-        fee_list = frappe.db.get_all(
-            "Fees",
-            filters=[["student_id", "in", students], ["outstanding_amount", ">", 0]],
-            fields=["name", "student_name", "custom_status", "posting_date", "due_date", "grand_total", "total_taxes_and_charges", "program", "parent_attachment", "family_code", "outstanding_amount"],
+            filters=[["student_id", "in", students], ["outstanding_amount", outstanding_filter, 0]],
+            fields=[
+                "name", "student_name", "custom_status", "posting_date", "due_date",
+                "grand_total", "total_taxes_and_charges", "program", "parent_attachment",
+                "family_code", "outstanding_amount"
+            ],
         )
 
-    return fee_list
+        return fee_list
+
+    except frappe.DoesNotExistError as e:
+        frappe.log_error(message=str(e), title="No Students Found")
+        return {"error": "No students found."}
+    
+    except frappe.db.InternalError as e:
+        frappe.log_error(message=str(e), title="Database Query Error")
+        return {"error": "Database error occurred. Please try again later."}
+    
+    except Exception as e:
+        frappe.log_error(message=str(e), title="Unexpected Error")
+        return {"error": "An unexpected error occurred."}
 
 @frappe.whitelist()
 def get_students():
@@ -125,13 +140,18 @@ def get_fees_attachment(fee_id):
 
 
 @frappe.whitelist()
-def make_portal_payment_record(fees=[]):
+def make_portal_payment_record(bank_name,tran_number,holder_name,number,fees=[]):
+    print(fees, "fees ***********")
     if not fees or not isinstance(fees, list):
         frappe.throw("Fees must be a list of fee records.")
 
     portal_record = frappe.get_doc({
         "doctype": "Portal Payment Record",
         "family_code": fees[0].get("family_code") if len(fees) > 0 else "",
+        "bank_name": bank_name,
+        "transaction_number": tran_number,
+        "account_holder_name": holder_name,
+        "mobile_number": number
     })
 
     for fee in fees:
@@ -140,6 +160,10 @@ def make_portal_payment_record(fees=[]):
         fee_doc = frappe.get_doc("Fees", fee.get("name"))
         frappe.db.set_value("Fees", fee_doc.name, "parent_attachment", 1)
         frappe.db.set_value("Fees", fee_doc.name, "portal_status", "Attachments")
+        frappe.db.set_value("Fees", fee_doc.name, "custom_bank_name", bank_name)
+        frappe.db.set_value("Fees", fee_doc.name, "custom_account_holder_name", tran_number)
+        frappe.db.set_value("Fees", fee_doc.name, "custom_transaction_number", holder_name)
+        frappe.db.set_value("Fees", fee_doc.name, "custom_mobile_number", number)
         row = portal_record.append('student_fee_details', {})
         row.update({
             'fees': fee_doc.name,
@@ -396,3 +420,18 @@ def get_student_gallery():
         g["images"] = [i for i in images if i.parent == g.name]
 
     return gallery
+
+
+@frappe.whitelist()
+def total_paid_fees(student=None):
+    if not student:
+        student = get_students()
+    total_paid_fees = frappe.db.count('Fees', [['student', 'in', student], ['outstanding_amount', '=', 0]])
+    return total_paid_fees
+
+@frappe.whitelist()
+def total_unpaid_fees(student=None):
+    if not student:
+        student = get_students()
+    total_paid_fees = frappe.db.count('Fees', [['student', 'in', student], ['outstanding_amount', '>', 0]])
+    return total_paid_fees

@@ -5,11 +5,17 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_hfja",
   "fake_attachment",
+  "section_break_hfja",
   "family_code",
   "column_break_hkea",
   "posting_date",
+  "section_break_xbud",
+  "bank_name",
+  "account_holder_name",
+  "column_break_fmcg",
+  "transaction_number",
+  "mobile_number",
   "section_break_ruei",
   "student_fee_details",
   "fee_collection_payment",
@@ -69,6 +75,34 @@
    "fieldtype": "Table",
    "label": "Fee Collection Payment",
    "options": "Fee Collection Payment"
+  },
+  {
+   "fieldname": "section_break_xbud",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "bank_name",
+   "fieldtype": "Data",
+   "label": "Bank Name"
+  },
+  {
+   "fieldname": "account_holder_name",
+   "fieldtype": "Data",
+   "label": "Account Holder Name"
+  },
+  {
+   "fieldname": "column_break_fmcg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "transaction_number",
+   "fieldtype": "Data",
+   "label": "Transaction Number"
+  },
+  {
+   "fieldname": "mobile_number",
+   "fieldtype": "Data",
+   "label": "Mobile Number"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -76,10 +110,10 @@
  "links": [
   {
    "link_doctype": "Fee Collections",
-   "link_fieldname": "reference"
+   "link_fieldname": "name"
   }
  ],
- "modified": "2024-12-02 14:58:04.252940",
+ "modified": "2025-02-07 13:55:51.042293",
  "modified_by": "Administrator",
  "module": "Parent Portal",
  "name": "Portal Payment Record",
