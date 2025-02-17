@@ -17,6 +17,7 @@ const PaidFee = () => {
         selector: (row) => (
           <div className={TableHeaderClass}>{row.student_name}</div>
         ),
+        sortable: true,
       },
       {
         name: <div className={TableHeaderClass}>Date</div>,
@@ -30,12 +31,14 @@ const PaidFee = () => {
         selector: (row) => (
           <p className="text-black dark:text-white">{row.program}</p>
         ),
+        sortable: true,
       },
       {
         name: <div className={TableHeaderClass}>Family Code</div>,
         selector: (row) => (
           <p className="text-black dark:text-white">{row.family_code}</p>
         ),
+        sortable: true,
       },
       {
         name: <div className={TableHeaderClass}>Total</div>,
@@ -44,6 +47,7 @@ const PaidFee = () => {
             {parseFloat(parseFloat(row.grand_total.toString()).toFixed(2))}
           </p>
         ),
+        sortable: true,
       },
       {
         name: <div className={TableHeaderClass}>Fee Status</div>,
@@ -60,24 +64,25 @@ const PaidFee = () => {
             </div>
           );
         },
+        sortable: true,
       },
     ],
     [feeList]
   );
 
   return (
-      <div className={CardClass}>
-        <DataTable
-          title={<h2 className={TableHeaderClass}>Paid Fees</h2>}
-          columns={columns}
-          data={feeList ? feeList.message : []}
-          progressPending={isLoading}
-          pagination
-          highlightOnHover
-          pointerOnHover
-          theme="default"
-        />
-      </div>
+    <div className={CardClass}>
+      <DataTable
+        title={<h2 className={TableHeaderClass}>Paid Fees</h2>}
+        columns={columns}
+        data={feeList ? feeList.message : []}
+        progressPending={isLoading}
+        pagination
+        highlightOnHover
+        pointerOnHover
+        theme="default"
+      />
+    </div>
   );
 };
 

@@ -11,20 +11,20 @@ const StudentLeaveForm = React.lazy(
 );
 const Profile = React.lazy(() => import("./pages/Profile"));
 const UnPaidFee = React.lazy(() => import("./pages/FeePages/UnPaidFee"));
-const Dashboard = React.lazy(() => import("./views/Dashboard"));
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const PaidFee = React.lazy(() => import("./pages/FeePages/PaidFee"));
-const Lectures = React.lazy(() => import("./views/Lectures"));
+const Lectures = React.lazy(() => import("./pages/Lectures"));
 const FeeForm = React.lazy(() => import("./pages/FeePages/FeeForm"));
-const Timetable = React.lazy(() => import("./views/Timetable"));
-const Assignment = React.lazy(() => import("./views/Assignment/index"));
+const Timetable = React.lazy(() => import("./pages/Timetable"));
+const Assignment = React.lazy(() => import("./pages/Assignment/index"));
 const AssignmentForm = React.lazy(
-  () => import("./views/Assignment/AssignmentForm")
+  () => import("./pages/Assignment/AssignmentForm")
 );
-const Newsletter = React.lazy(() => import("./views/Newsletter"));
+const Newsletter = React.lazy(() => import("./pages/Newsletter"));
 const NewsletterList = React.lazy(
-  () => import("./views/Newsletter/NewsletterList")
+  () => import("./pages/Newsletter/NewsletterList")
 );
-const ProgressReport = React.lazy(() => import("./views/ProgressReport"));
+const ProgressReport = React.lazy(() => import("./pages/ProgressReport"));
 const StudentLeave = React.lazy(() => import("./pages/StudentLeave"));
 const Gallery = React.lazy(() => import("./views/Gallery"));
 const GalleryView = React.lazy(() => import("./views/GalleryView"));

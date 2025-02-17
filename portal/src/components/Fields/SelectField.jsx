@@ -10,7 +10,11 @@ const SelectField = ({
 }) => {
   return (
     <div>
-      <label className="mb-2.5 block text-black dark:text-white">{label}</label>
+      {label && (
+        <label className="mb-2.5 block text-black dark:text-white">
+          {label}
+        </label>
+      )}
 
       <div className="relative z-20 bg-transparent dark:bg-form-input">
         <select

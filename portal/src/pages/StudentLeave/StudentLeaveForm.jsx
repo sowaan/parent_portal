@@ -1,15 +1,3 @@
-import { cilChevronLeft } from "@coreui/icons";
-import CIcon from "@coreui/icons-react";
-import {
-  CButton,
-  CCard,
-  CCol,
-  CForm,
-  CFormInput,
-  CFormLabel,
-  CFormSelect,
-  CFormTextarea,
-} from "@coreui/react";
 import axios from "axios";
 import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
 import { useEffect, useState } from "react";
@@ -20,7 +8,6 @@ import SelectField from "../../components/Fields/SelectField";
 import SelectDateField from "../../components/Fields/SelectDateField";
 import TextAreaField from "../../components/Fields/TextAreaField";
 import AttachField from "../../components/Fields/AttachField";
-import { ButtonWithIcon } from "../../components/Button";
 
 const StudentLeaveForm = () => {
   const { slug } = useParams();
@@ -51,21 +38,21 @@ const StudentLeaveForm = () => {
     setSelectedGroup(data.student_group);
   }
 
-  async function getGroups(student) {
-    try {
-      let response = await axios.get(
-        "/api/method/parent_portal.parent_portal.api.get_student_group",
-        {
-          params: {
-            student: student,
-          },
-        }
-      );
-      setGroup(response.data.message);
-    } catch (error) {
-      console.error("Failed to fetch groups:", error.response || error.message);
-    }
-  }
+  // async function getGroups(student) {
+  //   try {
+  //     let response = await axios.get(
+  //       "/api/method/parent_portal.parent_portal.api.get_student_group",
+  //       {
+  //         params: {
+  //           student: student,
+  //         },
+  //       }
+  //     );
+  //     setGroup(response.data.message);
+  //   } catch (error) {
+  //     console.error("Failed to fetch groups:", error.response || error.message);
+  //   }
+  // }
 
   async function submitLeaveApplication(e) {
     e.preventDefault();
