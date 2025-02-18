@@ -245,7 +245,7 @@ const SignIn = () => {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     label="Password"
-                    placeholder="Enter your email"
+                    placeholder="Enter your password"
                     value={password}
                     onChanged={(e) => setPassword(e.target.value)}
                     required={true}
