@@ -1,7 +1,7 @@
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useFrappeAuth } from "frappe-react-sdk";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { CToast, CToastBody, CToastClose, CToaster } from "@coreui/react";
+import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import Loader from "./common/Loader";
 import DefaultLayout from "./layout/DefaultLayout";
@@ -33,8 +33,6 @@ function App() {
   const { pathname } = useLocation();
   const { currentUser, isLoading } = useFrappeAuth();
   const [enable, setEnable] = useState(true);
-  const [toast, addToast] = useState(0);
-  const toaster = useRef();
 
   async function getAppData() {
     await axios
@@ -43,6 +41,7 @@ function App() {
         localStorage.setItem("appData", JSON.stringify(res.data.message));
       })
       .catch((error) => {
+        toast.error("Failed to fetch logo:", error.response || error.message);
         console.error("Failed to fetch logo:", error.response || error.message);
       });
   }
@@ -60,8 +59,12 @@ function App() {
           // setEnable(res.data.message);
         })
         .catch((error) => {
+          toast.error(
+            "Failed to fetch Portal config:",
+            error.response || error.message
+          );
           console.error(
-            "Failed to fetch logo:",
+            "Failed to fetch Portal config:",
             error.response || error.message
           );
         });
@@ -78,16 +81,7 @@ function App() {
 
   useEffect(() => {
     if (!enable && pathname.startsWith("/student-fee")) {
-      addToast(
-        <CToast>
-          <div className="d-flex">
-            <CToastBody>
-              Please pay your fee first to access all pages.
-            </CToastBody>
-            <CToastClose className="me-2 m-auto" />
-          </div>
-        </CToast>
-      );
+      toast.error("Please pay your fee first to access all pages.");
     }
   }, [pathname, enable]);
 
@@ -105,12 +99,7 @@ function App() {
 
   return (
     <>
-      <CToaster
-        className="p-3"
-        placement="top-end"
-        push={toast}
-        ref={toaster}
-      />
+      <ToastContainer />
       {!currentUser ? (
         <Suspense fallback={<Loader />}>
           <Routes>

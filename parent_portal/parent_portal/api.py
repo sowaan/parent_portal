@@ -63,7 +63,7 @@ def get_fee_list(isPaid=0):
     try:
         students = get_students()
         if not students:
-            frappe.throw("No students found.", frappe.DoesNotExistError)
+            return []
 
         outstanding_filter = "=" if isPaid else ">"
         
@@ -79,10 +79,6 @@ def get_fee_list(isPaid=0):
 
         return fee_list
 
-    except frappe.DoesNotExistError as e:
-        frappe.log_error(message=str(e), title="No Students Found")
-        return {"error": "No students found."}
-    
     except frappe.db.InternalError as e:
         frappe.log_error(message=str(e), title="Database Query Error")
         return {"error": "Database error occurred. Please try again later."}
@@ -94,9 +90,11 @@ def get_fee_list(isPaid=0):
 @frappe.whitelist()
 def get_students():
     user = frappe.session.user
-    last_doc = frappe.get_last_doc('Guardian', filters={"email_address": user})
-    # gardian = frappe.get_doc("Guardian", last_doc.name)
-    students = [d.student for d in last_doc.students]
+    students = []
+    if frappe.db.exists("Guardian", {"email_address": user}):
+        last_doc = frappe.get_last_doc('Guardian', filters={"email_address": user})
+        # gardian = frappe.get_doc("Guardian", last_doc.name)
+        students = [d.student for d in last_doc.students]
     return students
 
 @frappe.whitelist()

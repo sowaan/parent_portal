@@ -11,6 +11,7 @@ import {
 import StudentList from "../components/StudentList";
 import AttendanceChart from "../components/Chart/AttendanceChart";
 import { useFrappeGetCall } from "frappe-react-sdk";
+import { toast } from "react-toastify";
 
 const Dashboard = () => {
   const { data: unpaid_fees_number } = useFrappeGetCall(
@@ -19,7 +20,7 @@ const Dashboard = () => {
   const { data: paid_fees_number } = useFrappeGetCall(
     "parent_portal.parent_portal.api.total_paid_fees"
   );
-  const { data: studentList, isStudentLoading } = useFrappeGetCall(
+  const { data: studentList, isLoading } = useFrappeGetCall(
     "parent_portal.parent_portal.api.get_student_details"
   );
 
@@ -53,6 +54,7 @@ const Dashboard = () => {
       setAbsents(absents);
       setTotals({ present: total_present, absent: total_absent });
     } catch (error) {
+      toast.error(`Failed to fetch attendance summary: ${error}`);
       console.error("Failed to fetch attendance summary:", error);
     }
   };
@@ -113,140 +115,11 @@ const Dashboard = () => {
           students={studentList ? studentList.message : []}
           selectedStudent={selectedStudent}
           setSelectedStudent={setSelectedStudent}
+          isStudentLoading={isLoading}
         />
       </div>
     </>
   );
-
-  // return (
-  // <CRow className="mx-4">
-  //   <CCol xs>
-  //     <CCard className="mb-4">
-  //       <CCardHeader>Attendance</CCardHeader>
-  //       <CCardBody>
-  //         <CRow>
-  //           <CCol xs={12} md={6} xl={6}>
-  //             <CRow>
-  //               <CCol xs={6}>
-  //                 <div className="border-start border-start-4 border-start-success py-1 px-3">
-  //                   <div className="text-body-secondary text-truncate small">
-  //                     Total Present
-  //                   </div>
-  //                   <div className="fs-5 fw-semibold">{totals.present}</div>
-  //                 </div>
-  //               </CCol>
-  //               <CCol xs={6}>
-  //                 <div className="border-start border-start-4 border-start-danger py-1 px-3 mb-3">
-  //                   <div className="text-body-secondary text-truncate small">
-  //                     Total Absent
-  //                   </div>
-  //                   <div className="fs-5 fw-semibold">{totals.absent}</div>
-  //                 </div>
-  //               </CCol>
-  //             </CRow>
-  //             <hr className="mt-0" />
-  //             {progressGroup.map((item, index) => (
-  //               <div className="progress-group mb-4" key={index}>
-  //                 <div className="progress-group-prepend">
-  //                   <span className="text-body-secondary small">
-  //                     {item.title}
-  //                   </span>
-  //                 </div>
-  //                 <div className="progress-group-bars">
-  //                   <CProgress thin color="success" value={item.present} />
-  //                   <CProgress thin color="danger" value={item.absent} />
-  //                 </div>
-  //               </div>
-  //             ))}
-  //           </CCol>
-  //           <CCol xs={12} md={6} xl={6}>
-  //             <CRow>
-  //               <CCol xs={6}></CCol>
-  //               <CCol xs={6}>
-  //                 <CButtonGroup className="float-end me-3 mb-2">
-  //                   {["Day", "Week", "Month", "Year", "Custom"].map(
-  //                     (value) => (
-  //                       <CButton
-  //                         color="outline-secondary"
-  //                         key={value}
-  //                         className={`"mx-0" ${
-  //                           value == "Custom" ? "dropdown-toggle" : ""
-  //                         }`}
-  //                         active={value === activeButton}
-  //                         onClick={() => handleButtonClick(value)}
-  //                       >
-  //                         {value}
-  //                       </CButton>
-  //                     )
-  //                   )}
-  //                 </CButtonGroup>
-  //                 {showDatePicker && (
-  //                   <div
-  //                     className="dropdown-menu show p-3 border rounded"
-  //                     style={{
-  //                       backgroundColor: "#f8f9fa",
-  //                       maxWidth: "300px",
-  //                       boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-  //                     }}
-  //                   >
-  //                     <div className="mb-2">
-  //                       <label className="me-2">Start Date:</label>
-  //                       <input
-  //                         type="date"
-  //                         value={startDate}
-  //                         onChange={(e) => setStartDate(e.target.value)}
-  //                         className="form-control d-inline-block w-auto"
-  //                       />
-  //                     </div>
-  //                     <div className="mb-2">
-  //                       <label className="me-2">End Date:</label>
-  //                       <input
-  //                         type="date"
-  //                         value={endDate}
-  //                         onChange={(e) => setEndDate(e.target.value)}
-  //                         className="form-control d-inline-block w-auto"
-  //                       />
-  //                     </div>
-  //                     <div>
-  //                       <CButton
-  //                         color="primary"
-  //                         className="me-2"
-  //                         onClick={() => {
-  //                           setDateRange({
-  //                             startDate,
-  //                             endDate,
-  //                           });
-  //                           setShowDatePicker(false);
-  //                         }}
-  //                       >
-  //                         Apply
-  //                       </CButton>
-  //                       <CButton
-  //                         color="secondary"
-  //                         onClick={() => setShowDatePicker(false)}
-  //                       >
-  //                         Cancel
-  //                       </CButton>
-  //                     </div>
-  //                   </div>
-  //                 )}
-  //                 <DateRangeHeader dateRange={dateRange} />
-  //               </CCol>
-  //             </CRow>
-
-  //             <hr className="mt-0" />
-  //             <div style={{ height: "340px", overflow: "auto" }}>
-  //               {students.map((student, index) => (
-  //                 <StudentRow key={index} student={student} index={index} />
-  //               ))}
-  //             </div>
-  //           </CCol>
-  //         </CRow>
-  //       </CCardBody>
-  //     </CCard>
-  //   </CCol>
-  // </CRow>
-  // );
 };
 
 export default Dashboard;

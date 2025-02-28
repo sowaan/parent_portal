@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const NewsletterList = () => {
   const navigate = useNavigate();
-  const { data, error, isValidating, mutate } = useFrappeGetDocList(
+  const { data, error, isValidating } = useFrappeGetDocList(
     "Newsletter",
     {
       fields: ["name", "subject", "message"],
@@ -46,7 +46,7 @@ const NewsletterList = () => {
   return (
     <div className="body m-4 mt-0 p-2 bg-white pt-0 rounded">
       <DataTable
-        title="Assignments"
+        title="Newsletter List"
         columns={columns}
         data={data.length > 0 ? data : []}
         progressPending={isValidating}
