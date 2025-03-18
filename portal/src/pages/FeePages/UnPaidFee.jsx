@@ -10,6 +10,7 @@ import {
 } from "../../common/CommonClasses";
 import { ConformationDialog } from "../../common/Dialog";
 import { useFrappeGetCall } from "frappe-react-sdk";
+import { toast } from "react-toastify";
 
 createTheme("default", {
   background: {
@@ -189,7 +190,10 @@ const UnPaidFee = () => {
             },
           });
         })
-        .catch((error) => setError(error.response.data.message));
+        .catch((error) => {
+          toast.error(error.toString());
+          setError(error.response.data.message);
+        });
       setFile(null);
       setSubmitLoading(false);
       setModelFormData({
@@ -199,13 +203,13 @@ const UnPaidFee = () => {
         mobile_number: "",
       });
       setError("");
-      // }
       setToggleCleared(!toggleCleared);
       setIsModalVisible(false);
 
       // window.location.reload();
     } catch (error) {
       setError("Error during file upload:", error);
+      toast.error(`Error during file upload: ${error}`);
       setSubmitLoading(false);
     }
     // setFees(differenceBy(fees, selectedRows, 'title'));
