@@ -11,6 +11,7 @@ import {
 import { ConformationDialog } from "../../common/Dialog";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { toast } from "react-toastify";
+import SelectField from "../../components/Fields/SelectField";
 
 createTheme("default", {
   background: {
@@ -20,8 +21,16 @@ createTheme("default", {
 
 const UnPaidFee = () => {
   const navigate = useNavigate();
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const { data: students, isLoading: sLoading } = useFrappeGetCall(
+    "parent_portal.parent_portal.api.get_student_details"
+  );
   const { data: feeList, isLoading } = useFrappeGetCall(
-    "parent_portal.parent_portal.api.get_fee_list"
+    "parent_portal.parent_portal.api.get_fee_list",
+    {
+      isPaid: 0,
+      student: selectedStudent ? selectedStudent : null,
+    }
   );
   const [selectedRows, setSelectedRows] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -191,6 +200,8 @@ const UnPaidFee = () => {
           });
         })
         .catch((error) => {
+          console.log(error, "checking error");
+
           toast.error(error.toString());
           setError(error.response.data.message);
         });
@@ -209,11 +220,12 @@ const UnPaidFee = () => {
       // window.location.reload();
     } catch (error) {
       setError("Error during file upload:", error);
-      toast.error(`Error during file upload: ${error}`);
+      toast.error(`${error}`);
       setSubmitLoading(false);
     }
     // setFees(differenceBy(fees, selectedRows, 'title'));
   };
+
   const contextActions = useMemo(() => {
     return (
       <div className="mt-3">
@@ -256,6 +268,24 @@ const UnPaidFee = () => {
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
             {error}
           </div>
+        )}
+        {!sLoading && (
+          <SelectField
+            label=""
+            selectedOption={selectedStudent}
+            onChange={(e) => setSelectedStudent(e.target.value)}
+            options={
+              <>
+                <option value="">Select Student</option>
+                {students &&
+                  students.message.map((student, index) => (
+                    <option key={index} value={student.name}>
+                      {student.first_name}
+                    </option>
+                  ))}
+              </>
+            }
+          />
         )}
         {!isModalVisible ? (
           <DataTable

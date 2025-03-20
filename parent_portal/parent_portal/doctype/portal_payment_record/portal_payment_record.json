@@ -113,13 +113,14 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2025-02-07 13:55:51.042293",
+ "modified": "2025-03-19 12:51:10.411415",
  "modified_by": "Administrator",
  "module": "Parent Portal",
  "name": "Portal Payment Record",
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,

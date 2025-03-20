@@ -59,13 +59,14 @@ def get_attendance_summary(start_date=None, end_date=None, student=None):
 
 
 @frappe.whitelist()
-def get_fee_list(isPaid=0):
+def get_fee_list(isPaid="0", student=None):
     try:
         students = get_students()
-        if not students:
-            return []
+    
+        if student:
+            students = [student]
 
-        outstanding_filter = "=" if isPaid else ">"
+        outstanding_filter = "=" if isPaid == "1" else ">"
         
         fee_list = frappe.db.get_all(
             "Fees",
@@ -75,6 +76,7 @@ def get_fee_list(isPaid=0):
                 "grand_total", "total_taxes_and_charges", "program", "parent_attachment",
                 "family_code", "outstanding_amount"
             ],
+            order_by="posting_date asc"
         )
 
         return fee_list
