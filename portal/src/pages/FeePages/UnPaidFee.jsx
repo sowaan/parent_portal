@@ -27,10 +27,7 @@ const UnPaidFee = () => {
   );
   const { data: feeList, isLoading } = useFrappeGetCall(
     "parent_portal.parent_portal.api.get_fee_list",
-    {
-      isPaid: 0,
-      student: selectedStudent ? selectedStudent : null,
-    }
+    { isPaid: 0 }
   );
   const [selectedRows, setSelectedRows] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -44,6 +41,7 @@ const UnPaidFee = () => {
     holder_name: "",
     mobile_number: "",
   });
+  const [filteredFees, setFilteredFees] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -192,12 +190,21 @@ const UnPaidFee = () => {
           formData.append("is_private", 0); // Set 1 for private, 0 for public
           formData.append("doctype", "Portal Payment Record"); // Specify the doctype
           formData.append("docname", result.data.message.record_name); // Specify the document name (fee record)
-          await axios.post("/api/method/upload_file", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Accept: "application/json",
-            },
-          });
+          await axios
+            .post("/api/method/upload_file", formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                Accept: "application/json",
+              },
+            })
+            .then((response) => {
+              toast.success("File uploaded successfully");
+              setFile(null);
+            })
+            .catch((error) => {
+              console.error("Error uploading file:", error);
+              toast.error("Error uploading file");
+            });
         })
         .catch((error) => {
           console.log(error, "checking error");
@@ -225,6 +232,23 @@ const UnPaidFee = () => {
     }
     // setFees(differenceBy(fees, selectedRows, 'title'));
   };
+
+  useEffect(() => {
+    if (feeList) {
+      if (selectedStudent) {
+        console.log(
+          feeList.message.filter((fee) => fee.student_id === selectedStudent),
+          "filter list"
+        );
+
+        setFilteredFees(
+          feeList.message.filter((fee) => fee.student_id === selectedStudent)
+        );
+      } else {
+        setFilteredFees(feeList.message);
+      }
+    }
+  }, [selectedStudent, feeList]);
 
   const contextActions = useMemo(() => {
     return (
@@ -291,7 +315,7 @@ const UnPaidFee = () => {
           <DataTable
             title={<h2 className={TableHeaderClass}>Fees</h2>}
             columns={columns}
-            data={feeList ? feeList.message : []}
+            data={filteredFees || []}
             progressPending={isLoading}
             pagination
             highlightOnHover

@@ -110,10 +110,10 @@
  "links": [
   {
    "link_doctype": "Fee Collections",
-   "link_fieldname": "name"
+   "link_fieldname": "custom_reference_document"
   }
  ],
- "modified": "2025-03-19 12:51:10.411415",
+ "modified": "2025-03-21 10:00:51.898853",
  "modified_by": "Administrator",
  "module": "Parent Portal",
  "name": "Portal Payment Record",

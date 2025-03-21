@@ -14,11 +14,7 @@ fixtures = [
 	{
         "doctype":"Custom Field",
 		"filters":[
-			[
-				"module",
-                "=",
-                "Parent Portal"
-			]
+			["module", "=", "Parent Portal"]
 		]
 	}
 ]

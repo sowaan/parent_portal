@@ -72,7 +72,7 @@ def get_fee_list(isPaid="0", student=None):
             "Fees",
             filters=[["student_id", "in", students], ["outstanding_amount", outstanding_filter, 0]],
             fields=[
-                "name", "student_name", "custom_status", "posting_date", "due_date",
+                "name", "student_id", "student_name", "custom_status", "posting_date", "due_date",
                 "grand_total", "total_taxes_and_charges", "program", "parent_attachment",
                 "family_code", "outstanding_amount"
             ],
