@@ -24,7 +24,7 @@ fixtures = [
 # 	{
 # 		"name": "parent_portal",
 # 		"logo": "/assets/parent_portal/logo.png",
-# 		"title": "Parent Portal",
+# 		"title": "Parent Portal",	
 # 		"route": "/parent_portal",
 # 		"has_permission": "parent_portal.api.permission.has_app_permission"
 # 	}

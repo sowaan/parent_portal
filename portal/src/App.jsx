@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import Loader from "./common/Loader";
 import DefaultLayout from "./layout/DefaultLayout";
+import BankDetails from "./pages/BankDetails";
 const SignIn = React.lazy(() => import("./pages/SignIn"));
 const StudentLeaveForm = React.lazy(
   () => import("./pages/StudentLeave/StudentLeaveForm")
@@ -182,6 +183,10 @@ function App() {
               <Route
                 path="/profile"
                 element={<RouteElement page={<Profile />} />}
+              />
+              <Route
+                path="/bank-details"
+                element={<RouteElement page={<BankDetails />} />}
               />
               <Route path="*" element={<RouteElement page={<Dashboard />} />} />
             </Routes>

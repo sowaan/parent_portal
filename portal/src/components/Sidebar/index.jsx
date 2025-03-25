@@ -4,6 +4,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import sowaanLogo from "../../images/logo/sowaan.png";
 import {
   IconAssignment,
+  IconBank,
   IconDashboard,
   IconDollar,
   IconDollaronHand,
@@ -164,44 +165,52 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   title="News Letter"
                 />
               </li>
-              {/* <!-- Menu Lecutre Repository --> */}
               <li>
+                <SidebarNavLink
+                  path="/bank-details"
+                  active={pathname.includes("bank-details")}
+                  icon={<IconBank />}
+                  title="School Bank Details"
+                />
+              </li>
+              {/* <!-- Menu Lecutre Repository --> */}
+              {/* <li>
                 <SidebarNavLink
                   path="/lectures"
                   active={pathname.includes("lectures")}
                   icon={<IconRepository />}
                   title="Lecture Repository"
                 />
-              </li>
+              </li> */}
               {/* <!-- Menu Lecutre Repository --> */}
-              <li>
+              {/* <li>
                 <SidebarNavLink
                   path="/timetable"
                   active={pathname.includes("timetable")}
                   icon={<IconTable />}
                   title="Timetable"
                 />
-              </li>
+              </li> */}
               {/* <!-- Menu Lecutre Repository --> */}
               {/* <!-- Menu Assignment --> */}
-              <li>
+              {/* <li>
                 <SidebarNavLink
                   path="/assignment"
                   active={pathname.includes("assignment")}
                   icon={<IconAssignment />}
                   title="Assignment"
                 />
-              </li>
+              </li> */}
               {/* <!-- Menu Assignment --> */}
               {/* <!-- Menu Progress Report --> */}
-              <li>
+              {/* <li>
                 <SidebarNavLink
                   path="/progress-report"
                   active={pathname.includes("progress-report")}
                   icon={<IconProgress />}
                   title="Progress Report"
                 />
-              </li>
+              </li> */}
             </ul>
           </div>
         </nav>

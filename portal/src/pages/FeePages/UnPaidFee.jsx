@@ -254,22 +254,30 @@ const UnPaidFee = () => {
     return (
       <div className="mt-3">
         <form
-          className="grid grid-cols-2 gap-6"
+          className="grid grid-cols-3 gap-6"
           onSubmit={(e) => {
             e.preventDefault();
             setIsModalVisible(true);
           }}
         >
           {/* File Input */}
-          <div className="mb-3">
-            <input
-              type="file"
-              id="formFile"
-              required
-              onChange={handleFileChange}
-              className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none dark:text-white dark:border-gray-600 dark:bg-gray-800"
-            />
-          </div>
+            <div className="mx-2 mt-3 text-sm">
+              Total:{" "}
+              {parseFloat(
+                selectedRows
+                  .reduce((acc, row) => acc + row.grand_total, 0)
+                  .toString()
+              ).toFixed(2)}
+            </div>
+            <div className="mt-2">
+              <input
+                type="file"
+                id="formFile"
+                required
+                onChange={handleFileChange}
+                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none dark:text-white dark:border-gray-600 dark:bg-gray-800"
+              />
+            </div>
 
           {/* Submit Button */}
           <div className="mb-3 flex justify-end">
@@ -293,7 +301,7 @@ const UnPaidFee = () => {
             {error}
           </div>
         )}
-        {!sLoading && (
+        {!isModalVisible && !sLoading && (
           <SelectField
             label=""
             selectedOption={selectedStudent}
