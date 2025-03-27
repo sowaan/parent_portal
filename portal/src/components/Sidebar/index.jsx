@@ -147,14 +147,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               </li>
               {/* <!-- Menu Item Paid Fees --> */}
               {/* <!-- Menu Student Leave --> */}
-              <li>
+              {/* <li>
                 <SidebarNavLink
                   path="/student-leave"
                   active={pathname.includes("student-leave")}
                   icon={<IconLeave />}
                   title="Student Leave"
                 />
-              </li>
+              </li> */}
               {/* <!-- Menu Student Leave --> */}
               {/* <!-- Menu News Letter --> */}
               <li>

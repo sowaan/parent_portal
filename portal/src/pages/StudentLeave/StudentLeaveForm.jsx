@@ -8,6 +8,7 @@ import SelectField from "../../components/Fields/SelectField";
 import SelectDateField from "../../components/Fields/SelectDateField";
 import TextAreaField from "../../components/Fields/TextAreaField";
 import AttachField from "../../components/Fields/AttachField";
+import { toast } from "react-toastify";
 
 const StudentLeaveForm = () => {
   const { slug } = useParams();
@@ -56,6 +57,7 @@ const StudentLeaveForm = () => {
 
   async function submitLeaveApplication(e) {
     e.preventDefault();
+    console.log(fromDate, toDate);
 
     try {
       let response = await axios.post(
@@ -73,7 +75,7 @@ const StudentLeaveForm = () => {
 
       // Handle missing attachment case
       if (!attachment) {
-        alert("Please select a file to upload.");
+        toast.error("Please select a file to upload.");
         return;
       }
 
@@ -108,9 +110,11 @@ const StudentLeaveForm = () => {
         "Failed to submit leave application:",
         error.response?.data?.message || error.message
       );
-      alert(
+      toast.error(
         `Error: ${
-          error.response?.data?.message || "An unexpected error occurred."
+          error.response?.data?.message ||
+          error.message ||
+          "An unexpected error occurred."
         }`
       );
     }
@@ -176,7 +180,10 @@ const StudentLeaveForm = () => {
               <SelectDateField
                 label="From Date"
                 value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
+                onChange={(e) => {
+                  console.log(e);
+                  setFromDate(e.target.value);
+                }}
                 required={true}
                 disabled={slug}
               />

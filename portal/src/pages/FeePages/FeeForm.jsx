@@ -10,6 +10,7 @@ import {
   InputWithoutIconClass,
 } from "../../common/CommonClasses";
 import { IconFillUser } from "../../common/Icons";
+import { toast } from "react-toastify";
 
 const columns = [
   {
@@ -28,7 +29,7 @@ const columns = [
 
 const FeeForm = () => {
   const { slug } = useParams();
-  const { data } = useFrappeGetDoc("Fees", slug);
+  const { data, error: feeError } = useFrappeGetDoc("Fees", slug);
   const [file, setFile] = useState(null);
   const [attachment, setAttachment] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -147,6 +148,10 @@ const FeeForm = () => {
   useEffect(() => {
     getFeeAttachment();
   }, [file]);
+
+  useEffect(() => {
+    toast.error(feeError && feeError._server_messages);
+  }, [feeError]);
 
   return (
     <>

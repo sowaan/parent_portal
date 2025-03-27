@@ -1,14 +1,20 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import DataTable from "react-data-table-component";
 import { CardClass, TableHeaderClass } from "../../common/CommonClasses";
 import { useFrappeGetCall } from "frappe-react-sdk";
+import SelectField from "../../components/Fields/SelectField";
 
 const PaidFee = () => {
-  const navigate = useNavigate();
   const { data: feeList, isLoading } = useFrappeGetCall(
     "parent_portal.parent_portal.api.get_fee_list?isPaid=1"
   );
+  const { data: students, isLoading: sLoading } = useFrappeGetCall(
+    "parent_portal.parent_portal.api.get_student_details"
+  );
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [selectedFeeType, setSelectedFeeType] = useState("");
+  const [feeCategories, setFeeCategories] = useState([]);
+  const [filteredFees, setFilteredFees] = useState([]);
 
   const columns = useMemo(
     () => [
@@ -25,6 +31,12 @@ const PaidFee = () => {
           <p className="text-black dark:text-white">{row.posting_date}</p>
         ),
         sortable: true,
+      },
+      {
+        name: <div className={TableHeaderClass}>Fee Type</div>,
+        selector: (row) => (
+          <p className="text-black dark:text-white">{row.fees_category}</p>
+        ),
       },
       {
         name: <div className={TableHeaderClass}>Program</div>,
@@ -70,12 +82,80 @@ const PaidFee = () => {
     [feeList]
   );
 
+  useEffect(() => {
+    if (feeList) {
+      if (selectedStudent) {
+        const filtered = feeList.message.filter(
+          (fee) => fee.student_id === selectedStudent
+        );
+        setFilteredFees(filtered);
+      }
+      if (selectedFeeType) {
+        const filtered = feeList.message.filter(
+          (fee) => fee.fees_category === selectedFeeType
+        );
+        setFilteredFees(filtered);
+      }
+      if (selectedStudent && selectedFeeType) {
+        const filtered = feeList.message.filter(
+          (fee) =>
+            fee.student_id === selectedStudent &&
+            fee.fees_category === selectedFeeType
+        );
+        setFilteredFees(filtered);
+      }
+      if (!selectedStudent && !selectedFeeType) {
+        setFilteredFees(feeList.message);
+      }
+    }
+  }, [selectedStudent, selectedFeeType, feeList]);
+
+  useEffect(() => {
+    const categories =
+      feeList && feeList.message.map((fee) => fee.fees_category);
+    setFeeCategories([...new Set(categories)]);
+  }, [feeList]);
+
   return (
     <div className={CardClass}>
+      <div className="grid grid-cols-4 gap-6">
+        <SelectField
+          label=""
+          selectedOption={selectedStudent}
+          onChange={(e) => setSelectedStudent(e.target.value)}
+          options={
+            <>
+              <option value="">Select Student</option>
+              {students &&
+                students.message.map((student, index) => (
+                  <option key={index} value={student.name}>
+                    {student.first_name}
+                  </option>
+                ))}
+            </>
+          }
+        />
+        <SelectField
+          label=""
+          selectedOption={selectedFeeType}
+          onChange={(e) => setSelectedFeeType(e.target.value)}
+          options={
+            <>
+              <option value="">Select Fee Type</option>
+              {feeCategories &&
+                feeCategories.map((type, index) => (
+                  <option key={index} value={type}>
+                    {type}
+                  </option>
+                ))}
+            </>
+          }
+        />
+      </div>
       <DataTable
         title={<h2 className={TableHeaderClass}>Paid Fees</h2>}
         columns={columns}
-        data={feeList ? feeList.message : []}
+        data={filteredFees || []}
         progressPending={isLoading}
         pagination
         highlightOnHover

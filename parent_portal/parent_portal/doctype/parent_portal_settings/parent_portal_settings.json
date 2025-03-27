@@ -35,7 +35,7 @@
   {
    "fieldname": "account_name",
    "fieldtype": "Data",
-   "label": "Account Name"
+   "label": "Account Title"
   },
   {
    "fieldname": "iban",
@@ -46,7 +46,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-25 12:08:53.129057",
+ "modified": "2025-03-27 11:27:16.849834",
  "modified_by": "Administrator",
  "module": "Parent Portal",
  "name": "Parent Portal Settings",

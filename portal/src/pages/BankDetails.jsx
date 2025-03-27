@@ -1,10 +1,17 @@
 import { useFrappeGetDoc } from "frappe-react-sdk";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
 
 const BankDetails = () => {
   const { data, error, isValidating } = useFrappeGetDoc(
     "Parent Portal Settings",
     "Parent Portal Settings"
   );
+
+  useEffect(() => {
+    toast.error(error && error.message)
+  }, [error]);
+
   return (
     <div className="col-span-5 xl:col-span-3">
       <div className="rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -39,7 +46,7 @@ const BankDetails = () => {
                   className="mb-3 block text-sm font-medium text-black dark:text-white"
                   htmlFor="account_name"
                 >
-                  Account Name
+                  Account Title
                 </label>
                 <div className="relative">
                   <input

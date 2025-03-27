@@ -66,18 +66,39 @@ def get_fee_list(isPaid="0", student=None):
         if student:
             students = [student]
 
-        outstanding_filter = "=" if isPaid == "1" else ">"
-        
-        fee_list = frappe.db.get_all(
-            "Fees",
-            filters=[["student_id", "in", students], ["outstanding_amount", outstanding_filter, 0]],
-            fields=[
-                "name", "student_id", "student_name", "custom_status", "posting_date", "due_date",
-                "grand_total", "total_taxes_and_charges", "program", "parent_attachment",
-                "family_code", "outstanding_amount"
-            ],
-            order_by="posting_date asc"
-        )
+        Fees = frappe.qb.DocType("Fees")
+        FeesComponents = frappe.qb.DocType("Fee Component")
+
+        query = (
+				frappe.qb.from_(Fees)
+				.join(FeesComponents)
+				.on(Fees.name == FeesComponents.parent)
+				.select(
+					Fees.name,
+                    Fees.student_id,
+                    Fees.student_name,
+                    Fees.student_category,
+                    Fees.custom_status,
+                    Fees.posting_date,
+                    Fees.due_date,
+                    Fees.grand_total,
+                    Fees.total_taxes_and_charges,
+                    Fees.program,
+                    Fees.parent_attachment,
+                    Fees.family_code,
+                    Fees.outstanding_amount,
+                    FeesComponents.fees_category,
+				)
+				.where((Fees.student_id.isin(students)))
+                .orderby(Fees.posting_date, order=frappe.qb.asc)
+			)
+
+        if isPaid == "1":
+            query = query.where(Fees.outstanding_amount == 0)
+        else:
+            query = query.where(Fees.outstanding_amount > 0)
+        fee_list = query.run(as_dict=True)
+     
 
         return fee_list
 

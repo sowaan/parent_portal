@@ -9,7 +9,7 @@ import {
   TableHeaderClass,
 } from "../../common/CommonClasses";
 import { ConformationDialog } from "../../common/Dialog";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
 import { toast } from "react-toastify";
 import SelectField from "../../components/Fields/SelectField";
 
@@ -22,6 +22,7 @@ createTheme("default", {
 const UnPaidFee = () => {
   const navigate = useNavigate();
   const [selectedStudent, setSelectedStudent] = useState("");
+  const [selectedFeeType, setSelectedFeeType] = useState("");
   const { data: students, isLoading: sLoading } = useFrappeGetCall(
     "parent_portal.parent_portal.api.get_student_details"
   );
@@ -29,7 +30,12 @@ const UnPaidFee = () => {
     "parent_portal.parent_portal.api.get_fee_list",
     { isPaid: 0 }
   );
+  const { data: eduSettings, error: eduError } = useFrappeGetDoc(
+    "Education Settings",
+    "Education Settings"
+  );
   const [selectedRows, setSelectedRows] = useState([]);
+  const [feeCategories, setFeeCategories] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [toggleCleared, setToggleCleared] = useState(false);
   const [file, setFile] = useState(null);
@@ -42,6 +48,7 @@ const UnPaidFee = () => {
     mobile_number: "",
   });
   const [filteredFees, setFilteredFees] = useState([]);
+  const [discountFilter, setDiscountFilter] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -74,15 +81,15 @@ const UnPaidFee = () => {
         sortable: true,
       },
       {
-        name: <div className={TableHeaderClass}>Program</div>,
+        name: <div className={TableHeaderClass}>Fee Type</div>,
         selector: (row) => (
-          <p className="text-black dark:text-white">{row.program}</p>
+          <p className="text-black dark:text-white">{row.fees_category}</p>
         ),
       },
       {
-        name: <div className={TableHeaderClass}>Family Code</div>,
+        name: <div className={TableHeaderClass}>Program</div>,
         selector: (row) => (
-          <p className="text-black dark:text-white">{row.family_code}</p>
+          <p className="text-black dark:text-white">{row.program}</p>
         ),
       },
       {
@@ -149,29 +156,82 @@ const UnPaidFee = () => {
     setSelectedRows(state.selectedRows);
   }, []);
 
+  useEffect(() => {
+    handleDiscount();
+  }, [selectedRows]);
+
+  const handleDiscount = async () => {
+    let discountedRows = selectedRows.filter(
+      (row) => row.due_date >= moment().format("YYYY-MM-DD")
+    );
+    const edu = eduSettings && eduSettings.enable_discount;
+    const eduDiscountOn = eduSettings && eduSettings.apply_discount_on;
+    if (discountedRows.length > 0 && edu) {
+      if (eduDiscountOn) {
+        const as_category = eduSettings.applicable_student_categories;
+        if (as_category) {
+          let studentCategories = [];
+          for (let i = 0; i < as_category.length; i++) {
+            const ele = as_category[i];
+            studentCategories.push(ele.student_category);
+          }
+          discountedRows = discountedRows.filter((row) =>
+            studentCategories.includes(row.student_category)
+          );
+        }
+        discountedRows = discountedRows.filter(
+          (row) => row.fees_category === eduDiscountOn
+        );
+        const eduDiscountSlabs = eduSettings && eduSettings.discount_slabs;
+        if (eduDiscountSlabs) {
+          for (let i = 0; i < eduDiscountSlabs.length; i++) {
+            const ele = eduDiscountSlabs[i];
+            if (
+              ele.from_month <= discountedRows.length &&
+              discountedRows.length <= ele.to_month
+            ) {
+              if (ele.discount_type == "Percentage") {
+                discountedRows = discountedRows.map((row) => {
+                  return {
+                    ...row,
+                    grand_total:
+                      row.grand_total -
+                      (row.grand_total * ele.percentage) / 100,
+                  };
+                });
+              } else if (ele.discount_type == "Amount") {
+                discountedRows = discountedRows.map((row) => {
+                  return {
+                    ...row,
+                    grand_total: row.grand_total - ele.amount,
+                  };
+                });
+              }
+              console.log("discountedRows", discountedRows);
+            } else {
+              setDiscountFilter([]);
+            }
+          }
+          setDiscountFilter(discountedRows);
+        }
+      }
+    } else {
+      setDiscountFilter([]);
+    }
+  };
+
   const handleSubmit = async () => {
     setSubmitLoading(true);
 
     try {
-      if (!file) {
-        throw "Please select a file to upload.";
-      }
-
-      if (modelFormData.bank_name === "") {
-        throw "Bank Name is required.";
-      }
-
-      if (modelFormData.transaction_number === "") {
+      if (!file) throw "Please select a file to upload.";
+      if (modelFormData.bank_name === "") throw "Bank Name is required.";
+      if (modelFormData.transaction_number === "")
         throw "Transaction Number is required.";
-      }
-
-      if (modelFormData.holder_name === "") {
+      if (modelFormData.holder_name === "")
         throw "Account Holder Name is required.";
-      }
-
-      if (modelFormData.mobile_number === "") {
+      if (modelFormData.mobile_number === "")
         throw "Mobile Number is required.";
-      }
 
       await axios
         .post(
@@ -223,8 +283,6 @@ const UnPaidFee = () => {
       setError("");
       setToggleCleared(!toggleCleared);
       setIsModalVisible(false);
-
-      // window.location.reload();
     } catch (error) {
       setError("Error during file upload:", error);
       toast.error(`${error}`);
@@ -236,49 +294,57 @@ const UnPaidFee = () => {
   useEffect(() => {
     if (feeList) {
       if (selectedStudent) {
-        console.log(
-          feeList.message.filter((fee) => fee.student_id === selectedStudent),
-          "filter list"
+        const filtered = feeList.message.filter(
+          (fee) => fee.student_id === selectedStudent
         );
-
-        setFilteredFees(
-          feeList.message.filter((fee) => fee.student_id === selectedStudent)
+        setFilteredFees(filtered);
+      }
+      if (selectedFeeType) {
+        const filtered = feeList.message.filter(
+          (fee) => fee.fees_category === selectedFeeType
         );
-      } else {
+        setFilteredFees(filtered);
+      }
+      if (selectedStudent && selectedFeeType) {
+        const filtered = feeList.message.filter(
+          (fee) =>
+            fee.student_id === selectedStudent &&
+            fee.fees_category === selectedFeeType
+        );
+        setFilteredFees(filtered);
+      }
+      if (!selectedStudent && !selectedFeeType) {
         setFilteredFees(feeList.message);
       }
     }
-  }, [selectedStudent, feeList]);
+  }, [selectedStudent, selectedFeeType, feeList]);
+
+  useEffect(() => {
+    const categories =
+      feeList && feeList.message.map((fee) => fee.fees_category);
+    setFeeCategories([...new Set(categories)]);
+  }, [feeList]);
 
   const contextActions = useMemo(() => {
     return (
       <div className="mt-3">
         <form
-          className="grid grid-cols-3 gap-6"
+          className="grid grid-cols-2 gap-1"
           onSubmit={(e) => {
             e.preventDefault();
             setIsModalVisible(true);
           }}
         >
           {/* File Input */}
-            <div className="mx-2 mt-3 text-sm">
-              Total:{" "}
-              {parseFloat(
-                selectedRows
-                  .reduce((acc, row) => acc + row.grand_total, 0)
-                  .toString()
-              ).toFixed(2)}
-            </div>
-            <div className="mt-2">
-              <input
-                type="file"
-                id="formFile"
-                required
-                onChange={handleFileChange}
-                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none dark:text-white dark:border-gray-600 dark:bg-gray-800"
-              />
-            </div>
-
+          <div className="mt-2">
+            <input
+              type="file"
+              id="formFile"
+              required
+              onChange={handleFileChange}
+              className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none dark:text-white dark:border-gray-600 dark:bg-gray-800"
+            />
+          </div>
           {/* Submit Button */}
           <div className="mb-3 flex justify-end">
             <button
@@ -293,15 +359,19 @@ const UnPaidFee = () => {
     );
   }, [feeList, selectedRows, toggleCleared, isModalVisible]);
 
+  useEffect(() => {
+    toast.error(eduError && eduError._server_messages);
+  }, [eduError]);
+
   return (
-    <>
-      <div className={CardClass}>
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-            {error}
-          </div>
-        )}
-        {!isModalVisible && !sLoading && (
+    <div className={CardClass}>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          {error}
+        </div>
+      )}
+      {!isModalVisible && !sLoading && (
+        <div className="grid grid-cols-4 gap-6">
           <SelectField
             label=""
             selectedOption={selectedStudent}
@@ -318,129 +388,171 @@ const UnPaidFee = () => {
               </>
             }
           />
-        )}
-        {!isModalVisible ? (
-          <DataTable
-            title={<h2 className={TableHeaderClass}>Fees</h2>}
-            columns={columns}
-            data={filteredFees || []}
-            progressPending={isLoading}
-            pagination
-            highlightOnHover
-            pointerOnHover
-            selectableRows
-            contextActions={contextActions}
-            onSelectedRowsChange={handleRowSelected}
-            clearSelectedRows={toggleCleared}
-            selectableRowDisabled={(row) => row.parent_attachment === 1}
-            theme="default"
-          />
-        ) : (
-          <ConformationDialog
-            isModalVisible={isModalVisible}
-            setIsModalVisible={setIsModalVisible}
-            body={
-              <div className="p-6">
-                <p className="text-gray-700 dark:text-gray-300">
-                  Please confirm payment slip attachments for the following
-                  fees:
-                </p>
-                <ul className="mt-2 space-y-1 text-gray-900 dark:text-white">
-                  {selectedRows.map((row) => (
-                    <li key={row.name} className="list-disc ml-5">
-                      {row.name}
-                    </li>
+          <SelectField
+            label=""
+            selectedOption={selectedFeeType}
+            onChange={(e) => setSelectedFeeType(e.target.value)}
+            options={
+              <>
+                <option value="">Select Fee Type</option>
+                {feeCategories &&
+                  feeCategories.map((type, index) => (
+                    <option key={index} value={type}>
+                      {type}
+                    </option>
                   ))}
-                </ul>
+              </>
+            }
+          />
+        </div>
+      )}
+      <div className="flex">
+        {/* Calculate Subtotal */}
+        {(() => {
+          const subtotal = selectedRows.reduce(
+            (acc, row) => acc + row.grand_total,
+            0
+          );
+          const discountTotal = discountFilter.reduce(
+            (acc, row) => acc + row.grand_total,
+            0
+          );
+          const total = discountTotal > 0 ? discountTotal : subtotal;
+          const discount =
+            discountTotal > 0 ? (subtotal - discountTotal).toFixed(2) : "0.00";
 
-                <div className="mb-5.5 flex flex-col gap-5.5 sm:flex-row">
-                  <div className="w-full sm:w-1/2">
-                    <label
-                      className="mb-3 block text-sm font-medium text-black dark:text-white"
-                      htmlFor="bank_name"
-                    >
-                      Bank Name
-                    </label>
-                    <div className="relative">
-                      <input
-                        className={InputWithoutIconClass}
-                        type="text"
-                        name="bank_name"
-                        id="bank_name"
-                        value={modelFormData.bank_name}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="w-full sm:w-1/2">
-                    <label
-                      className="mb-3 block text-sm font-medium text-black dark:text-white"
-                      htmlFor="transaction_number"
-                    >
-                      Transaction Number
-                    </label>
-                    <div className="relative">
-                      <input
-                        className={InputWithoutIconClass}
-                        type="text"
-                        name="transaction_number"
-                        id="transaction_number"
-                        value={modelFormData.transaction_number}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
+          return (
+            <>
+              <div className="mx-2 mt-3 text-sm">
+                SubTotal: {subtotal.toFixed(2)}
+              </div>
+              <div className="mx-2 mt-3 text-sm">Discount: {discount}</div>
+              <div className="mx-2 mt-3 text-sm font-bold text-black dark:text-white">
+                Total: {total.toFixed(2)}
+              </div>
+            </>
+          );
+        })()}
+      </div>
+      {!isModalVisible ? (
+        <DataTable
+          title={<h2 className={TableHeaderClass}>Fees</h2>}
+          columns={columns}
+          data={filteredFees || []}
+          progressPending={isLoading}
+          pagination
+          highlightOnHover
+          pointerOnHover
+          selectableRows
+          contextActions={contextActions}
+          onSelectedRowsChange={handleRowSelected}
+          clearSelectedRows={toggleCleared}
+          selectableRowDisabled={(row) => row.parent_attachment === 1}
+          theme="default"
+        />
+      ) : (
+        <ConformationDialog
+          isModalVisible={isModalVisible}
+          setIsModalVisible={setIsModalVisible}
+          body={
+            <div className="p-6">
+              <p className="text-gray-700 dark:text-gray-300">
+                Please confirm payment slip attachments for the following fees:
+              </p>
+              <ul className="mt-2 space-y-1 text-gray-900 dark:text-white">
+                {selectedRows.map((row) => (
+                  <li key={row.name} className="list-disc ml-5">
+                    {row.name}
+                  </li>
+                ))}
+              </ul>
+              <div className="mb-5.5 flex flex-col gap-5.5 sm:flex-row">
+                <div className="w-full sm:w-1/2">
+                  <label
+                    className="mb-3 block text-sm font-medium text-black dark:text-white"
+                    htmlFor="bank_name"
+                  >
+                    Bank Name
+                  </label>
+                  <div className="relative">
+                    <input
+                      className={InputWithoutIconClass}
+                      type="text"
+                      name="bank_name"
+                      id="bank_name"
+                      value={modelFormData.bank_name}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                 </div>
-                <div className="mb-5.5 flex flex-col gap-5.5 sm:flex-row">
-                  <div className="w-full sm:w-1/2">
-                    <label
-                      className="mb-3 block text-sm font-medium text-black dark:text-white"
-                      htmlFor="holder_name"
-                    >
-                      Account Holder Name
-                    </label>
-                    <div className="relative">
-                      <input
-                        className={InputWithoutIconClass}
-                        type="text"
-                        name="holder_name"
-                        id="holder_name"
-                        value={modelFormData.holder_name}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="w-full sm:w-1/2">
-                    <label
-                      className="mb-3 block text-sm font-medium text-black dark:text-white"
-                      htmlFor="mobile_number"
-                    >
-                      Mobile Number
-                    </label>
-                    <div className="relative">
-                      <input
-                        className={InputWithoutIconClass}
-                        type="phone"
-                        name="mobile_number"
-                        id="mobile_number"
-                        value={modelFormData.mobile_number}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
+                <div className="w-full sm:w-1/2">
+                  <label
+                    className="mb-3 block text-sm font-medium text-black dark:text-white"
+                    htmlFor="transaction_number"
+                  >
+                    Transaction Number
+                  </label>
+                  <div className="relative">
+                    <input
+                      className={InputWithoutIconClass}
+                      type="text"
+                      name="transaction_number"
+                      id="transaction_number"
+                      value={modelFormData.transaction_number}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
                 </div>
               </div>
-            }
-            handleSubmit={handleSubmit}
-            agree={submitLoading}
-          />
-        )}
-      </div>
-    </>
+              <div className="mb-5.5 flex flex-col gap-5.5 sm:flex-row">
+                <div className="w-full sm:w-1/2">
+                  <label
+                    className="mb-3 block text-sm font-medium text-black dark:text-white"
+                    htmlFor="holder_name"
+                  >
+                    Account Holder Name
+                  </label>
+                  <div className="relative">
+                    <input
+                      className={InputWithoutIconClass}
+                      type="text"
+                      name="holder_name"
+                      id="holder_name"
+                      value={modelFormData.holder_name}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="w-full sm:w-1/2">
+                  <label
+                    className="mb-3 block text-sm font-medium text-black dark:text-white"
+                    htmlFor="mobile_number"
+                  >
+                    Mobile Number
+                  </label>
+                  <div className="relative">
+                    <input
+                      className={InputWithoutIconClass}
+                      type="phone"
+                      name="mobile_number"
+                      id="mobile_number"
+                      value={modelFormData.mobile_number}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+          handleSubmit={handleSubmit}
+          agree={submitLoading}
+        />
+      )}
+    </div>
   );
 };
 
