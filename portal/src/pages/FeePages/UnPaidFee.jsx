@@ -168,24 +168,30 @@ const UnPaidFee = () => {
     const eduDiscountOn = eduSettings && eduSettings.apply_discount_on;
     if (discountedRows.length > 0 && edu) {
       if (eduDiscountOn) {
-        const as_category = eduSettings.applicable_student_categories;
-        if (as_category) {
-          let studentCategories = [];
-          for (let i = 0; i < as_category.length; i++) {
-            const ele = as_category[i];
-            studentCategories.push(ele.student_category);
-          }
-          discountedRows = discountedRows.filter((row) =>
-            studentCategories.includes(row.student_category)
-          );
-        }
+        // setNotDiscounted(discountedRows.filter((row) => row.fees_category !== eduDiscountOn));
         discountedRows = discountedRows.filter(
           (row) => row.fees_category === eduDiscountOn
         );
+        const as_category = eduSettings.applicable_student_categories;
+        if (as_category) {
+          const studentCategories = new Set(
+            as_category.map((ele) => ele.student_category)
+          );
+
+          discountedRows = discountedRows.filter((row) =>
+            studentCategories.has(row.student_category)
+          );
+        }
         const eduDiscountSlabs = eduSettings && eduSettings.discount_slabs;
         if (eduDiscountSlabs) {
           for (let i = 0; i < eduDiscountSlabs.length; i++) {
             const ele = eduDiscountSlabs[i];
+            console.log(
+              ele.from_month <= discountedRows.length &&
+                discountedRows.length <= ele.to_month,
+              "sdfaj"
+            );
+
             if (
               ele.from_month <= discountedRows.length &&
               discountedRows.length <= ele.to_month
@@ -209,9 +215,10 @@ const UnPaidFee = () => {
               }
               console.log("discountedRows", discountedRows);
             } else {
-              setDiscountFilter([]);
+              discountedRows = [];
             }
           }
+
           setDiscountFilter(discountedRows);
         }
       }
@@ -406,34 +413,33 @@ const UnPaidFee = () => {
           />
         </div>
       )}
-      <div className="flex">
-        {/* Calculate Subtotal */}
-        {(() => {
-          const subtotal = selectedRows.reduce(
-            (acc, row) => acc + row.grand_total,
-            0
-          );
-          const discountTotal = discountFilter.reduce(
-            (acc, row) => acc + row.grand_total,
-            0
-          );
-          const total = discountTotal > 0 ? discountTotal : subtotal;
-          const discount =
-            discountTotal > 0 ? (subtotal - discountTotal).toFixed(2) : "0.00";
+      {/* Calculate Subtotal */}
+      {(() => {
+        const subtotal = selectedRows
+          .reduce((sum, row) => sum + (row.grand_total || 0), 0)
+          .toFixed(2);
+        const discountrowGrandTotal = discountFilter
+          .reduce((sum, row) => sum + (row.grand_total || 0), 0)
+          .toFixed(2);
+        const discountrowOutStandingTotal = discountFilter
+          .reduce((sum, row) => sum + (row.outstanding_amount || 0), 0)
+          .toFixed(2);
+        const discountTotal =
+          discountrowOutStandingTotal - discountrowGrandTotal;
 
-          return (
-            <>
-              <div className="mx-2 mt-3 text-sm">
-                SubTotal: {subtotal.toFixed(2)}
-              </div>
-              <div className="mx-2 mt-3 text-sm">Discount: {discount}</div>
-              <div className="mx-2 mt-3 text-sm font-bold text-black dark:text-white">
-                Total: {total.toFixed(2)}
-              </div>
-            </>
-          );
-        })()}
-      </div>
+        const total = discountTotal > 0 ? subtotal - discountTotal : subtotal;
+        const discount = discountTotal > 0 ? discountTotal.toFixed(2) : "0.00";
+
+        return (
+          <div className="flex">
+            <div className="mx-2 mt-3 text-sm">SubTotal: {subtotal}</div>
+            <div className="mx-2 mt-3 text-sm">Discount: {discount}</div>
+            <div className="mx-2 mt-3 text-sm font-bold text-black dark:text-white">
+              Total: {total}
+            </div>
+          </div>
+        );
+      })()}
       {!isModalVisible ? (
         <DataTable
           title={<h2 className={TableHeaderClass}>Fees</h2>}

@@ -48,8 +48,7 @@ const SignIn = () => {
       }
     } catch (err) {
       setLoading(false);
-      console.log(err, "error");
-      toast.error("Invalid email or password");
+      toast.error(err.response.data._server_messages || err);
       setError("Invalid email or password");
     }
   };
@@ -74,12 +73,7 @@ const SignIn = () => {
             <div className="py-17.5 px-26 text-center">
               <Link className="mb-5.5 inline-block" to="/">
                 <img
-                  className="hidden dark:block"
-                  src={(appData ? appData.app_logo : null) ?? sowaanLogo}
-                  alt="Logo"
-                />
-                <img
-                  className="dark:hidden"
+                  className="max-h-[100px]"
                   src={(appData ? appData.app_logo : null) ?? sowaanLogo}
                   alt="Logo"
                 />
