@@ -160,57 +160,61 @@ const UnPaidFee = () => {
     setSelectedRows(state.selectedRows);
   }, []);
 
-
-const selectableRowDisabled = useCallback(
-  (row) => {
-    // Group fees by student_id
-    const feesByStudent = {};
-    filteredFees.forEach(fee => {
-      if (!feesByStudent[fee.student_id]) {
-        feesByStudent[fee.student_id] = [];
-      }
-      feesByStudent[fee.student_id].push(fee);
-    });
-
-    // Sort each student's fees by posting_date
-    Object.values(feesByStudent).forEach(fees => {
-      fees.sort((a, b) => new Date(a.posting_date) - new Date(b.posting_date));
-    });
-
-    // Find first unpaid fee per student
-    const firstUnpaidFees = new Set();
-    
-    Object.values(feesByStudent).forEach(fees => {
-      let previousPaid = true; // Assume all previous fees are paid initially
-
-      for (const fee of fees) {
-        if (fee.parent_attachment === 1 || selectedFees.has(fee.name)) {
-          // If paid or selected, next month can be enabled
-          previousPaid = true;
-        } else if (previousPaid) {
-          // First unpaid fee should be enabled
-          firstUnpaidFees.add(fee.name);
-          previousPaid = false; // Next months should remain disabled unless this is selected
-        } else {
-          previousPaid = false;
+  const selectableRowDisabled = useCallback(
+    (row) => {
+      // Group fees by student_id
+      const feesByStudent = {};
+      filteredFees.forEach((fee) => {
+        if (!feesByStudent[fee.student_id]) {
+          feesByStudent[fee.student_id] = [];
         }
-      }
-    });
+        feesByStudent[fee.student_id].push(fee);
+      });
 
-    // Disable row if:
-    // - It's already paid (parent_attachment === 1)
-    // - It's not the first unpaid fee and previous month is not selected
-    return row.parent_attachment === 1 || (!firstUnpaidFees.has(row.name) && !selectedFees.has(row.name));
-  },
-  [filteredFees, selectedFees]
-);
+      // Sort each student's fees by posting_date
+      Object.values(feesByStudent).forEach((fees) => {
+        fees.sort(
+          (a, b) => new Date(a.posting_date) - new Date(b.posting_date)
+        );
+      });
+
+      // Find first unpaid fee per student
+      const firstUnpaidFees = new Set();
+
+      Object.values(feesByStudent).forEach((fees) => {
+        let previousPaid = true; // Assume all previous fees are paid initially
+
+        for (const fee of fees) {
+          if (fee.parent_attachment === 1 || selectedFees.has(fee.name)) {
+            // If paid or selected, next month can be enabled
+            previousPaid = true;
+          } else if (previousPaid) {
+            // First unpaid fee should be enabled
+            firstUnpaidFees.add(fee.name);
+            previousPaid = false; // Next months should remain disabled unless this is selected
+          } else {
+            previousPaid = false;
+          }
+        }
+      });
+
+      // Disable row if:
+      // - It's already paid (parent_attachment === 1)
+      // - It's not the first unpaid fee and previous month is not selected
+      return (
+        row.parent_attachment === 1 ||
+        selectedFees.has(row.name) ||
+        (!firstUnpaidFees.has(row.name) && !selectedFees.has(row.name))
+      );
+    },
+    [filteredFees, selectedFees]
+  );
 
   useEffect(() => {
     handleDiscount();
   }, [selectedRows]);
 
   const handleDiscount = async () => {
-    
     let discountedRows = selectedRows.filter(
       (row) => row.due_date >= moment().format("YYYY-MM-DD")
     );
@@ -244,7 +248,6 @@ const selectableRowDisabled = useCallback(
           : 1;
       }
 
-      console.log(discountedRows.length, "saadadasldkf ");
       const eduDiscountSlabs = eduSettings && eduSettings.discount_slabs;
       if (eduDiscountSlabs) {
         for (let i = 0; i < discountedRows.length; i++) {
@@ -493,7 +496,7 @@ const selectableRowDisabled = useCallback(
             <div className="mx-2 mt-3 text-sm">SubTotal: {subtotal}</div>
             <div className="mx-2 mt-3 text-sm">Discount: {discount}</div>
             <div className="mx-2 mt-3 text-sm font-bold text-black dark:text-white">
-              Total: {total}
+              Total: {parseFloat(total.toString()).toFixed(2)}
             </div>
           </div>
         );

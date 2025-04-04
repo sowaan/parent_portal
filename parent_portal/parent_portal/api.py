@@ -161,7 +161,6 @@ def get_fees_attachment(fee_id):
 
 @frappe.whitelist()
 def make_portal_payment_record(bank_name,tran_number,holder_name,number,fees=[]):
-    print(fees, "fees ***********")
     if not fees or not isinstance(fees, list):
         frappe.throw("Fees must be a list of fee records.")
 
