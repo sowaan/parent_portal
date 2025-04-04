@@ -35,6 +35,8 @@ const UnPaidFee = () => {
     "Education Settings"
   );
   const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedFees, setSelectedFees] = useState(new Set());
+
   const [feeCategories, setFeeCategories] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [toggleCleared, setToggleCleared] = useState(false);
@@ -153,77 +155,133 @@ const UnPaidFee = () => {
   };
 
   const handleRowSelected = useCallback((state) => {
+    const selectedNames = new Set(state.selectedRows.map((row) => row.name));
+    setSelectedFees(selectedNames);
     setSelectedRows(state.selectedRows);
   }, []);
+
+
+const selectableRowDisabled = useCallback(
+  (row) => {
+    // Group fees by student_id
+    const feesByStudent = {};
+    filteredFees.forEach(fee => {
+      if (!feesByStudent[fee.student_id]) {
+        feesByStudent[fee.student_id] = [];
+      }
+      feesByStudent[fee.student_id].push(fee);
+    });
+
+    // Sort each student's fees by posting_date
+    Object.values(feesByStudent).forEach(fees => {
+      fees.sort((a, b) => new Date(a.posting_date) - new Date(b.posting_date));
+    });
+
+    // Find first unpaid fee per student
+    const firstUnpaidFees = new Set();
+    
+    Object.values(feesByStudent).forEach(fees => {
+      let previousPaid = true; // Assume all previous fees are paid initially
+
+      for (const fee of fees) {
+        if (fee.parent_attachment === 1 || selectedFees.has(fee.name)) {
+          // If paid or selected, next month can be enabled
+          previousPaid = true;
+        } else if (previousPaid) {
+          // First unpaid fee should be enabled
+          firstUnpaidFees.add(fee.name);
+          previousPaid = false; // Next months should remain disabled unless this is selected
+        } else {
+          previousPaid = false;
+        }
+      }
+    });
+
+    // Disable row if:
+    // - It's already paid (parent_attachment === 1)
+    // - It's not the first unpaid fee and previous month is not selected
+    return row.parent_attachment === 1 || (!firstUnpaidFees.has(row.name) && !selectedFees.has(row.name));
+  },
+  [filteredFees, selectedFees]
+);
 
   useEffect(() => {
     handleDiscount();
   }, [selectedRows]);
 
   const handleDiscount = async () => {
+    
     let discountedRows = selectedRows.filter(
       (row) => row.due_date >= moment().format("YYYY-MM-DD")
     );
-    const edu = eduSettings && eduSettings.enable_discount;
+    if (discountedRows.length <= 0 || !eduSettings?.enable_discount) {
+      setDiscountFilter([]);
+      return;
+    }
     const eduDiscountOn = eduSettings && eduSettings.apply_discount_on;
-    if (discountedRows.length > 0 && edu) {
-      if (eduDiscountOn) {
-        // setNotDiscounted(discountedRows.filter((row) => row.fees_category !== eduDiscountOn));
-        discountedRows = discountedRows.filter(
-          (row) => row.fees_category === eduDiscountOn
+    if (eduDiscountOn) {
+      // Filtering based on due date and fees category
+      discountedRows = discountedRows.filter(
+        (row) => row.fees_category === eduDiscountOn
+      );
+      // Filter by student category
+      const as_category = eduSettings.applicable_student_categories;
+      if (as_category) {
+        const studentCategories = new Set(
+          as_category.map((ele) => ele.student_category)
         );
-        const as_category = eduSettings.applicable_student_categories;
-        if (as_category) {
-          const studentCategories = new Set(
-            as_category.map((ele) => ele.student_category)
-          );
 
-          discountedRows = discountedRows.filter((row) =>
-            studentCategories.has(row.student_category)
-          );
-        }
-        const eduDiscountSlabs = eduSettings && eduSettings.discount_slabs;
-        if (eduDiscountSlabs) {
-          for (let i = 0; i < eduDiscountSlabs.length; i++) {
-            const ele = eduDiscountSlabs[i];
-            console.log(
-              ele.from_month <= discountedRows.length &&
-                discountedRows.length <= ele.to_month,
-              "sdfaj"
-            );
+        discountedRows = discountedRows.filter((row) =>
+          studentCategories.has(row.student_category)
+        );
+      }
+      // Count occurrences of each student_id
+      const student_count = {};
+      for (let i = 0; i < discountedRows.length; i++) {
+        const ele = discountedRows[i];
+        student_count[ele.student_id] = student_count[ele.student_id]
+          ? student_count[ele.student_id] + 1
+          : 1;
+      }
 
+      console.log(discountedRows.length, "saadadasldkf ");
+      const eduDiscountSlabs = eduSettings && eduSettings.discount_slabs;
+      if (eduDiscountSlabs) {
+        for (let i = 0; i < discountedRows.length; i++) {
+          let row = discountedRows[i];
+          let student_id = row.student_id;
+
+          // Find the applicable discount slab
+          let discountSlab = null;
+          for (let j = 0; j < eduDiscountSlabs.length; j++) {
+            let ele = eduDiscountSlabs[j];
             if (
-              ele.from_month <= discountedRows.length &&
-              discountedRows.length <= ele.to_month
+              ele.from_month <= student_count[student_id] &&
+              student_count[student_id] <= ele.to_month
             ) {
-              if (ele.discount_type == "Percentage") {
-                discountedRows = discountedRows.map((row) => {
-                  return {
-                    ...row,
-                    grand_total:
-                      row.grand_total -
-                      (row.grand_total * ele.percentage) / 100,
-                  };
-                });
-              } else if (ele.discount_type == "Amount") {
-                discountedRows = discountedRows.map((row) => {
-                  return {
-                    ...row,
-                    grand_total: row.grand_total - ele.amount,
-                  };
-                });
-              }
-              console.log("discountedRows", discountedRows);
-            } else {
-              discountedRows = [];
+              discountSlab = ele;
+              break; // Exit loop early when first matching slab is found
             }
           }
 
-          setDiscountFilter(discountedRows);
+          // If no matching discount slab, continue to next row
+          if (!discountSlab) continue;
+
+          // Apply discount based on type
+          let discountAmount =
+            discountSlab.discount_type === "Percentage"
+              ? (row.grand_total * discountSlab.percentage) / 100
+              : discountSlab.amount;
+
+          // Update discountedRows[i] directly
+          discountedRows[i] = {
+            ...row,
+            grand_total: row.grand_total - discountAmount,
+          };
         }
+
+        setDiscountFilter(discountedRows);
       }
-    } else {
-      setDiscountFilter([]);
     }
   };
 
@@ -453,7 +511,7 @@ const UnPaidFee = () => {
           contextActions={contextActions}
           onSelectedRowsChange={handleRowSelected}
           clearSelectedRows={toggleCleared}
-          selectableRowDisabled={(row) => row.parent_attachment === 1}
+          selectableRowDisabled={(row) => selectableRowDisabled(row)}
           theme="default"
         />
       ) : (

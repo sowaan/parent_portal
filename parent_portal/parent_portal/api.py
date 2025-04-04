@@ -99,7 +99,6 @@ def get_fee_list(isPaid="0", student=None):
             query = query.where(Fees.outstanding_amount > 0)
         fee_list = query.run(as_dict=True)
      
-
         return fee_list
 
     except frappe.db.InternalError as e:
