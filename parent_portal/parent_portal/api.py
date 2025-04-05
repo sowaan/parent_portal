@@ -142,8 +142,7 @@ def get_student_batch():
 
 @frappe.whitelist()
 def get_currentuser():
-    user = frappe.session.user
-    user = frappe.get_doc("User", user)
+    user = frappe.get_doc("Guardian", {"email_address": frappe.session.user})
     return user
 
 @frappe.whitelist()

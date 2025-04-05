@@ -1,19 +1,16 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ClickOutside from "../ClickOutside";
 import { useFrappeAuth } from "frappe-react-sdk";
 import {
-  IconContacts,
   IconOut,
   IconPerson,
-  IconSetting,
 } from "../../common/Icons";
 // import UserOne from "../../images/user/user-01.png";
 
 const DropdownUser = () => {
   const user = JSON.parse(localStorage.getItem("user"));
-  const navigate = useNavigate();
-  const { currentUser, isLoading, logout, error } = useFrappeAuth();
+  const { isLoading, logout } = useFrappeAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
@@ -25,14 +22,14 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            {user && user.first_name.split(" ")[0]}
+            {user && user.guardian_name.split(" ")[0]}
           </span>
           <span className="block text-xs">Parent</span>
         </span>
 
         <span className="h-12 w-12 rounded-full">
           <div className="flex h-12 w-12 rounded-full bg-sky-950 text-center items-center justify-center text-white font-black">
-            {user && user.first_name[0]}
+            {user && user.guardian_name[0]}
           </div>
         </span>
 

@@ -19,7 +19,7 @@ class PortalPaymentRecord(Document):
 				"doctype": "Fee Collections",
 				"family_code": self.family_code,
 				"posting_date": self.posting_date,
-				"reference": self.name,
+				"custom_reference_document": self.name,
 			})
 
 			for fee in self.student_fee_details:
