@@ -6,15 +6,30 @@ import SelectField from "../../components/Fields/SelectField";
 
 const PaidFee = () => {
   const { data: feeList, isLoading } = useFrappeGetCall(
-    "parent_portal.parent_portal.api.get_fee_list?isPaid=1"
+    "parent_portal.parent_portal.api.get_fee_list?isPaid=1&asc=0"
   );
-  const { data: students, isLoading: sLoading } = useFrappeGetCall(
+  const { data: students } = useFrappeGetCall(
     "parent_portal.parent_portal.api.get_student_details"
   );
   const [selectedStudent, setSelectedStudent] = useState("");
   const [selectedFeeType, setSelectedFeeType] = useState("");
   const [feeCategories, setFeeCategories] = useState([]);
   const [filteredFees, setFilteredFees] = useState([]);
+
+  const sortFunc = (val1, val2) => {
+    const a = val1.toLowerCase();
+    const b = val2.toLowerCase();
+
+    if (a > b) {
+      return 1;
+    }
+
+    if (b > a) {
+      return -1;
+    }
+
+    return 0;
+  };
 
   const columns = useMemo(
     () => [
@@ -24,6 +39,7 @@ const PaidFee = () => {
           <div className={TableHeaderClass}>{row.student_name}</div>
         ),
         sortable: true,
+        sortFunction: (rowA, rowB) => sortFunc(rowA.student_name, rowB.student_name),
       },
       {
         name: <div className={TableHeaderClass}>Date</div>,
@@ -31,6 +47,7 @@ const PaidFee = () => {
           <p className="text-black dark:text-white">{row.posting_date}</p>
         ),
         sortable: true,
+        sortFunction: (rowA, rowB) => sortFunc(rowA.posting_date, rowB.posting_date),
       },
       {
         name: <div className={TableHeaderClass}>Fee Type</div>,

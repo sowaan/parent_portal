@@ -135,6 +135,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 />
               </li>
               {/* <!-- Menu Item Fees --> */}
+              <li>
+                <SidebarNavLink
+                  path="/bank-details"
+                  active={pathname.includes("bank-details")}
+                  icon={<IconBank />}
+                  title="School Bank Details"
+                />
+              </li>
 
               {/* <!-- Menu Item Paid Fees --> */}
               <li>
@@ -163,14 +171,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   active={pathname.includes("newsletter")}
                   icon={<IconNewsLetter />}
                   title="News Letter"
-                />
-              </li>
-              <li>
-                <SidebarNavLink
-                  path="/bank-details"
-                  active={pathname.includes("bank-details")}
-                  icon={<IconBank />}
-                  title="School Bank Details"
                 />
               </li>
               {/* <!-- Menu Lecutre Repository --> */}

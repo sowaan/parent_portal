@@ -60,6 +60,21 @@ const UnPaidFee = () => {
     }));
   };
 
+  const sortFunc = (val1, val2) => {
+    const a = val1.toLowerCase();
+    const b = val2.toLowerCase();
+
+    if (a > b) {
+      return 1;
+    }
+
+    if (b > a) {
+      return -1;
+    }
+
+    return 0;
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -81,6 +96,7 @@ const UnPaidFee = () => {
           <p className="text-black dark:text-white">{row.posting_date}</p>
         ),
         sortable: true,
+        sortFunction: (rowA, rowB) => sortFunc(rowA.posting_date, rowB.posting_date),
       },
       {
         name: <div className={TableHeaderClass}>Fee Type</div>,

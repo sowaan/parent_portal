@@ -59,7 +59,7 @@ def get_attendance_summary(start_date=None, end_date=None, student=None):
 
 
 @frappe.whitelist()
-def get_fee_list(isPaid="0", student=None):
+def get_fee_list(isPaid="0", asc="1", student=None):
     try:
         students = get_students()
     
@@ -90,13 +90,15 @@ def get_fee_list(isPaid="0", student=None):
                     FeesComponents.fees_category,
 				)
 				.where((Fees.student_id.isin(students)))
-                .orderby(Fees.posting_date, order=frappe.qb.asc)
 			)
 
         if isPaid == "1":
             query = query.where(Fees.outstanding_amount == 0)
         else:
             query = query.where(Fees.outstanding_amount > 0)
+
+        order_direction = frappe.qb.asc if asc == "1" else frappe.qb.desc
+        query = query.orderby(Fees.posting_date, order=order_direction)
         fee_list = query.run(as_dict=True)
      
         return fee_list
