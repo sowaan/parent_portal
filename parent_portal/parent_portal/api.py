@@ -234,19 +234,9 @@ def set_fee_attachment(fee_id, file_url):
 
 @frappe.whitelist(allow_guest=True)
 def get_app_logo():
-    app_name = frappe.get_value("Website Settings", None, "app_name")
-    app_logo = frappe.get_all("File", filters=[["attached_to_name", "=", "Website Settings"], ["attached_to_field", "=", "app_logo"]], fields=["file_url"])
-    banner_image = frappe.get_all("File", filters=[["attached_to_name", "=", "Website Settings"], ["attached_to_field", "=", "banner_image"]], fields=["file_url"])
-    if len(app_logo) > 0:
-        app_logo = app_logo[0].get("file_url")
-    else:
-        app_logo = None
-
-    if len(banner_image) > 0:
-        banner_image = banner_image[0].get("file_url")
-    else:
-        banner_image = None
-    return {"app_name": app_name, "app_logo": app_logo, "banner_image": banner_image}
+    app_logo, app_name = frappe.db.get_value("Parent Portal Settings", None, ["app_logo", "app_name"])
+    
+    return {"app_name": app_name, "app_logo": app_logo}
 
 
 
@@ -391,8 +381,6 @@ def get_student_results(student=None, assessment=None, course=None):
 
     for report in assessment_reports:
         report["details"] = [detail for detail in assesment_result_details if detail.parent == report.name]
-
-
 
     return assessment_reports
 

@@ -56,8 +56,8 @@ function App() {
       axios
         .get("/api/method/parent_portal.parent_portal.api.is_potral_enable")
         .then((res) => {
-          setEnable(true);
-          // setEnable(res.data.message);
+          // setEnable(true);
+          setEnable(res.data.message);
         })
         .catch((error) => {
           toast.error(

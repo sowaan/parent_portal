@@ -3,16 +3,11 @@ import { NavLink, useLocation } from "react-router-dom";
 // import SidebarLinkGroup from "./SidebarLinkGroup";
 import sowaanLogo from "../../images/logo/sowaan.png";
 import {
-  IconAssignment,
   IconBank,
   IconDashboard,
   IconDollar,
   IconDollaronHand,
-  IconLeave,
   IconNewsLetter,
-  IconProgress,
-  IconRepository,
-  IconTable,
 } from "../../common/Icons";
 import SidebarNavLink from "./SidebarNavLink";
 
@@ -77,6 +72,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           <img
             src={(appData ? appData.app_logo : null) ?? sowaanLogo}
             alt="Logo"
+            className="h-13"
           />
         </NavLink>
 

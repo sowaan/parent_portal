@@ -40,8 +40,13 @@ const StudentList = ({
                     {chat.first_name}
                   </h5>
                   <p>
+                  <p>
                     <span className="text-sm text-black dark:text-white">
                       {chat.admission_registration_id}
+                    </span>
+                  </p>
+                    <span className="text-sm text-black dark:text-white">
+                      {chat.current_program_enrollment} : {chat.custom_student_batch}
                     </span>
                   </p>
                 </div>

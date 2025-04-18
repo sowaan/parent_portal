@@ -10,7 +10,11 @@
   "account_number",
   "column_break_aupq",
   "account_name",
-  "iban"
+  "iban",
+  "website_settings_section",
+  "app_logo",
+  "column_break_zfzd",
+  "app_name"
  ],
  "fields": [
   {
@@ -41,12 +45,31 @@
    "fieldname": "iban",
    "fieldtype": "Data",
    "label": "IBAN"
+  },
+  {
+   "fieldname": "website_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Website Settings"
+  },
+  {
+   "fieldname": "app_logo",
+   "fieldtype": "Attach Image",
+   "label": "App Logo"
+  },
+  {
+   "fieldname": "column_break_zfzd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "label": "App Name"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-27 11:27:16.849834",
+ "modified": "2025-04-16 12:44:16.724262",
  "modified_by": "Administrator",
  "module": "Parent Portal",
  "name": "Parent Portal Settings",
