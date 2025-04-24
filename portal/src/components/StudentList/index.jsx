@@ -42,7 +42,7 @@ const StudentList = ({
                   <p>
                   <p>
                     <span className="text-sm text-black dark:text-white">
-                      {chat.admission_registration_id}
+                      {chat.name}
                     </span>
                   </p>
                     <span className="text-sm text-black dark:text-white">

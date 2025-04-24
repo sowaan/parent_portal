@@ -72,7 +72,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           <img
             src={(appData ? appData.app_logo : null) ?? sowaanLogo}
             alt="Logo"
-            className="h-13"
           />
         </NavLink>
 
