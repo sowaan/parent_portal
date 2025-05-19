@@ -91,7 +91,7 @@ def get_fee_list(isPaid="0", asc="1", student=None):
 				)
 				.where((Fees.student_id.isin(students)))
 			)
-
+        query = query.where(Fees.docstatus < 2)
         if isPaid == "1":
             query = query.where(Fees.outstanding_amount == 0)
         else:

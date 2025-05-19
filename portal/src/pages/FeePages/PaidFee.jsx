@@ -177,7 +177,7 @@ const PaidFee = () => {
         pagination
         highlightOnHover
         pointerOnHover
-        theme="default"
+        theme="system"
       />
     </div>
   );
