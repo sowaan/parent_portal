@@ -75,7 +75,7 @@ function App() {
   // Restrict access dynamically based on enable
   const isAllowedPath = (path) => {
     if (!enable) {
-      return path === "/student-fee" || path.startsWith("/student-fee/");
+      return path === "/student-fee" || path === "/bank-details" || path.startsWith("/student-fee/");
     }
     return true;
   };
