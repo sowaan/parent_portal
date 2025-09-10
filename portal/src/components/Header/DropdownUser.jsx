@@ -29,7 +29,10 @@ const DropdownUser = () => {
 
         <span className="h-12 w-12 rounded-full">
           <div className="flex h-12 w-12 rounded-full bg-sky-950 text-center items-center justify-center text-white font-black">
-            {user && user.guardian_name[0]}
+            {user && !user.image && user.guardian_name[0]}
+            {user && user.image && (
+              <img src={user.image} alt="Profile" className="h-full w-full rounded-full object-cover" />
+            )}
           </div>
         </span>
 

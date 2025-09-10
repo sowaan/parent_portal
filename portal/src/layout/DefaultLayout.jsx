@@ -26,6 +26,19 @@ const DefaultLayout = ({ children }) => {
             </div>
           </main>
           {/* <!-- ===== Main Content End ===== --> */}
+          <footer className="text-center text-xs text-gray-400 py-4">
+            © {new Date().getFullYear()} 
+            {" "}
+            <a
+              href="https://sowaanerp.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:underline"
+            >
+              SowaanERP
+            </a>
+            {" "}Parent Portal. All rights reserved.
+          </footer>
         </div>
         {/* <!-- ===== Content Area End ===== --> */}
       </div>

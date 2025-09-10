@@ -62,45 +62,46 @@ def get_attendance_summary(start_date=None, end_date=None, student=None):
 def get_fee_list(isPaid="0", asc="1", student=None):
     try:
         students = get_students()
-    
         if student:
             students = [student]
 
-        Fees = frappe.qb.DocType("Fees")
-        FeesComponents = frappe.qb.DocType("Fee Component")
-
-        query = (
-				frappe.qb.from_(Fees)
-				.join(FeesComponents)
-				.on(Fees.name == FeesComponents.parent)
-				.select(
-					Fees.name,
-                    Fees.student_id,
-                    Fees.student_name,
-                    Fees.student_category,
-                    Fees.custom_status,
-                    Fees.posting_date,
-                    Fees.due_date,
-                    Fees.grand_total,
-                    Fees.total_taxes_and_charges,
-                    Fees.program,
-                    Fees.parent_attachment,
-                    Fees.family_code,
-                    Fees.outstanding_amount,
-                    FeesComponents.fees_category,
-				)
-				.where((Fees.student_id.isin(students)))
-			)
-        query = query.where(Fees.docstatus < 2)
+        # Fetch Fees records with required filters
+        filters = {"student_id": ["in", students], "docstatus": ["<", 2]}
         if isPaid == "1":
-            query = query.where(Fees.outstanding_amount == 0)
+            filters["outstanding_amount"] = 0
         else:
-            query = query.where(Fees.outstanding_amount > 0)
+            filters["outstanding_amount"] = [">", 0]
 
-        order_direction = frappe.qb.asc if asc == "1" else frappe.qb.desc
-        query = query.orderby(Fees.posting_date, order=order_direction)
-        fee_list = query.run(as_dict=True)
-     
+        order_by = "posting_date asc" if asc == "1" else "posting_date desc"
+        fee_list = frappe.get_all(
+            "Fees",
+            filters=filters,
+            fields=[
+                "name", "student_id", "student_name", "student_category", "custom_status",
+                "posting_date", "due_date", "grand_total", "total_taxes_and_charges", "program",
+                "parent_attachment", "family_code", "outstanding_amount"
+            ],
+            order_by=order_by
+        )
+
+        # Fetch all Fee Components for these fees in one go
+        fee_names = [fee["name"] for fee in fee_list]
+        components = frappe.get_all(
+            "Fee Component",
+            filters={"parent": ["in", fee_names]},
+            fields=["parent", "fees_category"]
+        )
+
+        # Map fee name to its categories
+        from collections import defaultdict
+        fee_categories = defaultdict(list)
+        for comp in components:
+            fee_categories[comp["parent"]].append(comp["fees_category"])
+
+        # Attach categories to each fee record
+        for fee in fee_list:
+            fee["fees_category"] = ", ".join(fee_categories.get(fee["name"], []))
+
         return fee_list
 
     except frappe.db.InternalError as e:
@@ -145,6 +146,9 @@ def get_student_batch():
 @frappe.whitelist()
 def get_currentuser():
     user = frappe.get_doc("Guardian", {"email_address": frappe.session.user})
+    user_image = frappe.get_value("User", frappe.session.user, "user_image")
+    if user_image:
+        user.image = user_image
     return user
 
 @frappe.whitelist()
