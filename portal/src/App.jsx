@@ -14,6 +14,8 @@ const Profile = React.lazy(() => import("./pages/Profile"));
 const UnPaidFee = React.lazy(() => import("./pages/FeePages/UnPaidFee"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const PaidFee = React.lazy(() => import("./pages/FeePages/PaidFee"));
+const PrintZatcaFee = React.lazy(() => import("./pages/FeePages/PrintZatcaFee"));
+const StudentResult = React.lazy(() => import("./pages/FeePages/StudentResult"));
 const Lectures = React.lazy(() => import("./pages/Lectures"));
 const FeeForm = React.lazy(() => import("./pages/FeePages/FeeForm"));
 const Timetable = React.lazy(() => import("./pages/Timetable"));
@@ -127,6 +129,14 @@ function App() {
               <Route
                 path="/student-paid-fee"
                 element={<RouteElement page={<PaidFee />} />}
+              />
+              <Route
+                path="/print-zatca-fee"
+                element={<RouteElement page={<PrintZatcaFee />} />}
+              />
+              <Route
+                path="/student-result"
+                element={<RouteElement page={<StudentResult />} />}
               />
               <Route
                 path="/lectures"

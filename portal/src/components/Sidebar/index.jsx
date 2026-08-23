@@ -8,6 +8,8 @@ import {
   IconDollar,
   IconDollaronHand,
   IconNewsLetter,
+  IconPrint,
+  IconProgress,
 } from "../../common/Icons";
 import SidebarNavLink from "./SidebarNavLink";
 
@@ -129,6 +131,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   title="Fees"
                 />
               </li>
+              {/* <!-- Menu Print Zatca Fee --> */}
+              <li>
+                <SidebarNavLink
+                  path="/print-zatca-fee"
+                  active={pathname.includes("print-zatca-fee")}
+                  icon={<IconPrint />}
+                  title="Print Zatca Fee"
+                />
+              </li>
+              {/* <!-- Menu Print Zatca Fee --> */}
               {/* <!-- Menu Item Fees --> */}
               <li>
                 <SidebarNavLink
@@ -168,6 +180,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   title="News Letter"
                 />
               </li>
+              {/* <!-- Menu Student Result --> */}
+              <li>
+                <SidebarNavLink
+                  path="/student-result"
+                  active={pathname.includes("student-result")}
+                  icon={<IconProgress />}
+                  title="Student Result"
+                />
+              </li>
+              {/* <!-- Menu Student Result --> */}
               {/* <!-- Menu Lecutre Repository --> */}
               {/* <li>
                 <SidebarNavLink

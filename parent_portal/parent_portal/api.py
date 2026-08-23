@@ -1,5 +1,6 @@
 import frappe
-from frappe.utils import formatdate, today, add_days
+from frappe.utils import formatdate, today, add_days, get_first_day
+from urllib.parse import urlencode
 
 @frappe.whitelist()
 def get_attendance_summary(start_date=None, end_date=None, student=None):
@@ -111,6 +112,149 @@ def get_fee_list(isPaid="0", asc="1", student=None):
     except Exception as e:
         frappe.log_error(message=str(e), title="Unexpected Error")
         return {"error": "An unexpected error occurred."}
+
+
+def get_family_codes():
+    students = get_students()
+    if not students:
+        return []
+    codes = frappe.get_all("Fees", filters={"student_id": ["in", students]}, pluck="family_code")
+    return list({str(code) for code in codes if code})
+
+
+@frappe.whitelist()
+def get_fee_collection_list():
+    family_codes = get_family_codes()
+    if not family_codes:
+        return []
+
+    return frappe.get_all(
+        "Fee Collections",
+        filters={"family_code": ["in", family_codes], "docstatus": 1},
+        fields=[
+            "name", "family_code", "grand_total", "net_total",
+            "reference_no", "reference_date", "is_return", "creation"
+        ],
+        order_by="creation desc"
+    )
+
+
+@frappe.whitelist(methods=["POST"])
+def get_fee_collection_print_url(name):
+    family_code = frappe.db.get_value("Fee Collections", name, "family_code")
+    if not family_code or str(family_code) not in get_family_codes():
+        frappe.throw("Not permitted", frappe.PermissionError)
+
+    key = frappe.get_doc("Fee Collections", name).get_document_share_key()
+    query = urlencode({
+        "doctype": "Fee Collections",
+        "name": name,
+        "format": "Zatca Print",
+        "no_letterhead": 0,
+        "key": key,
+    })
+    return f"/printview?{query}"
+
+
+def is_fee_paid_uptodate(student_id):
+    cutoff = get_first_day(today())
+    unpaid = frappe.db.count("Fees", {
+        "student_id": student_id,
+        "docstatus": ["<", 2],
+        "posting_date": ["<", cutoff],
+        "outstanding_amount": [">", 0],
+    })
+    return unpaid == 0
+
+
+def grade_in_range(student_group, low=1, high=8):
+    parts = (student_group or "").split("-")
+    if len(parts) < 2:
+        return False
+    try:
+        grade = int(parts[1])
+    except ValueError:
+        return False
+    return low <= grade <= high
+
+
+def get_final_academic_result(student_id):
+    """Returns (academic_result_name, student_group) for the student's submitted
+    Final result in a grade 1-8 class, or (None, None) if none exists."""
+    rows = frappe.get_all(
+        "Student Group Student",
+        filters={"parenttype": "Academic Result", "student": student_id},
+        fields=["parent"]
+    )
+    if not rows:
+        return None, None
+
+    parent_names = list({row["parent"] for row in rows})
+    results = frappe.get_all(
+        "Academic Result",
+        filters={"name": ["in", parent_names], "trimester_type": "Final", "docstatus": 1},
+        fields=["name", "student_group"],
+        order_by="date desc"
+    )
+    for result in results:
+        if grade_in_range(result["student_group"]):
+            return result["name"], result["student_group"]
+    return None, None
+
+
+@frappe.whitelist()
+def get_final_result_list():
+    students = get_students()
+    if not students:
+        return []
+
+    student_details = frappe.get_all(
+        "Student",
+        filters={"name": ["in", students]},
+        fields=["name", "student_name"]
+    )
+
+    results = []
+    for student in student_details:
+        academic_result, student_group = get_final_academic_result(student["name"])
+        if not academic_result:
+            continue
+        results.append({
+            "student_id": student["name"],
+            "student_name": student["student_name"],
+            "class": student_group,
+            "can_print": is_fee_paid_uptodate(student["name"]),
+        })
+    return results
+
+
+@frappe.whitelist()
+def download_student_result_pdf(student):
+    if student not in get_students():
+        frappe.throw("Not permitted", frappe.PermissionError)
+
+    academic_result, student_group = get_final_academic_result(student)
+    if not academic_result:
+        frappe.throw("Result not available", frappe.PermissionError)
+
+    if not is_fee_paid_uptodate(student):
+        frappe.throw("Not permitted", frappe.PermissionError)
+
+    doc = frappe.get_doc("Academic Result", academic_result)
+
+    # Restrict the in-memory doc to this student's rows only before rendering,
+    # so the shared class-wide print format never exposes other students' results.
+    target_rolls = {s.group_roll_number for s in doc.students if s.student == student}
+    doc.students = [s for s in doc.students if s.student == student]
+    doc.students_result = [r for r in doc.students_result if r.group_roll_number in target_rolls]
+
+    pdf = frappe.get_print(
+        "Academic Result", academic_result, "Final Result 1-8 Print 2026",
+        doc=doc, as_pdf=True
+    )
+    frappe.local.response.filename = f"{student}-result.pdf"
+    frappe.local.response.filecontent = pdf
+    frappe.local.response.type = "pdf"
 
 @frappe.whitelist()
 def get_students():
