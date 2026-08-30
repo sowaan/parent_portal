@@ -213,3 +213,56 @@ span.flatpickr-weekday,
 [x-cloak] {
   display: none !important;
 }
+
+/* Content rendered from a Text Editor field (wrapped in Quill's own
+   .ql-editor class) needs its heading/paragraph styling reinstated
+   explicitly, since Tailwind's base reset strips default sizing/weight
+   from h1-h6, and since this only appears in runtime data (never as a
+   literal class name in JSX), it must live outside any @layer block -
+   otherwise Tailwind's content-based tree-shaking strips it as unused. */
+.ql-editor h1 {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+}
+.ql-editor h2 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  margin-top: 0.5rem;
+}
+.ql-editor h3 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+}
+.ql-editor p {
+  margin-bottom: 0.75rem;
+  line-height: 1.625;
+}
+.ql-editor strong {
+  font-weight: 700;
+}
+.ql-editor em {
+  font-style: italic;
+}
+.ql-editor a {
+  color: #3C50E0;
+  text-decoration: underline;
+}
+.ql-editor ul {
+  list-style-type: disc;
+  list-style-position: inside;
+  margin-bottom: 0.75rem;
+}
+.ql-editor ol {
+  list-style-type: decimal;
+  list-style-position: inside;
+  margin-bottom: 0.75rem;
+}
+

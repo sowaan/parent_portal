@@ -4,6 +4,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import sowaanLogo from "../../images/logo/sowaan.png";
 import {
   IconBank,
+  IconContacts,
   IconDashboard,
   IconDollar,
   IconDollaronHand,
@@ -171,15 +172,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 />
               </li> */}
               {/* <!-- Menu Student Leave --> */}
-              {/* <!-- Menu News Letter --> */}
-              <li>
-                <SidebarNavLink
-                  path="/newsletter"
-                  active={pathname.includes("newsletter")}
-                  icon={<IconNewsLetter />}
-                  title="News Letter"
-                />
-              </li>
+              
               {/* <!-- Menu Student Result --> */}
               <li>
                 <SidebarNavLink
@@ -190,6 +183,25 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 />
               </li>
               {/* <!-- Menu Student Result --> */}
+              {/* <!-- Menu Contact & Concern Resolution --> */}
+              <li>
+                <SidebarNavLink
+                  path="/contact-concern-resolution"
+                  active={pathname.includes("contact-concern-resolution")}
+                  icon={<IconContacts />}
+                  title="Contact & Concern Resolution"
+                />
+              </li>
+              {/* <!-- Menu Contact & Concern Resolution --> */}
+              {/* <!-- Menu News Letter --> */}
+              <li>
+                <SidebarNavLink
+                  path="/newsletter"
+                  active={pathname.includes("newsletter")}
+                  icon={<IconNewsLetter />}
+                  title="News Letter"
+                />
+              </li>
               {/* <!-- Menu Lecutre Repository --> */}
               {/* <li>
                 <SidebarNavLink

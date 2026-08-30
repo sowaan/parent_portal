@@ -594,3 +594,22 @@ def total_unpaid_fees(student=None):
         student = get_students()
     total_paid_fees = frappe.db.count('Fees', [['student', 'in', student], ['outstanding_amount', '>', 0]])
     return total_paid_fees
+
+@frappe.whitelist()
+def get_contact_concern_resolution():
+    doc = frappe.get_single("Contact And Concern Resolution")
+
+    return {
+        "intro_text": doc.intro_text,
+        "sections": [
+            {
+                "section": row.section,
+                "contact_email": row.contact_email,
+                "section_head": row.section_head,
+            }
+            for row in doc.sections
+        ],
+        "steps_text": doc.steps_text,
+        "google_form_link": doc.google_form_link,
+        "closing_text": doc.closing_text,
+    }
