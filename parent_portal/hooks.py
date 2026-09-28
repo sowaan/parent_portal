@@ -19,6 +19,9 @@ fixtures = [
 	}
 ]
 
+# Keep existing Custom Field names in line with fixtures so sync_fixtures doesn't re-insert them
+before_migrate = ["parent_portal.migrate.align_custom_field_names"]
+
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
 # 	{
